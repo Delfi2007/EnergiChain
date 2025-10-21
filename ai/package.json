@@ -1,0 +1,38 @@
+{
+  "name": "energichain-ai",
+  "version": "1.0.0",
+  "description": "AI services for EnergiChain - GPT-4 chatbot, RAG, Computer Vision, and ML forecasting",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "index-knowledge": "node scripts/index-knowledge.js",
+    "train-cv": "python computer-vision/train.py",
+    "train-forecast": "python demand-forecasting/train.py"
+  },
+  "keywords": [
+    "ai",
+    "openai",
+    "gpt4",
+    "rag",
+    "computer-vision",
+    "machine-learning",
+    "chatbot"
+  ],
+  "author": "EnergiChain",
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^4.20.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "langchain": "^0.0.200",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

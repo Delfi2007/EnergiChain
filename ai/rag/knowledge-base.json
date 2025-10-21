@@ -1,0 +1,134 @@
+[
+  {
+    "id": "safety-001",
+    "category": "Safety",
+    "title": "How to Detect Gas Leaks",
+    "content": "To detect an LPG gas leak: 1) Use your nose - LPG has an added smell (mercaptan) that smells like rotten eggs. 2) Listen for hissing sounds near the cylinder or connections. 3) Apply soapy water to connections - bubbles indicate a leak. 4) Never use a flame to check for leaks. If you detect a leak: turn off the cylinder valve immediately, open windows for ventilation, do not operate electrical switches, evacuate the area, and call EnergiChain support at 0700-123-456."
+  },
+  {
+    "id": "safety-002",
+    "category": "Safety",
+    "title": "Safe LPG Cylinder Storage",
+    "content": "Store LPG cylinders upright in a well-ventilated area away from heat sources. Keep cylinders at least 1.5 meters away from stoves, heaters, and direct sunlight. Never store cylinders in basements, enclosed spaces, or near flammable materials. Outdoor storage is preferred. Indoor storage must have adequate ventilation. Keep the area around cylinders clear of combustible materials. Temperature should not exceed 50°C."
+  },
+  {
+    "id": "safety-003",
+    "category": "Safety",
+    "title": "Cylinder Connection Safety",
+    "content": "Before connecting: 1) Check the regulator and hose for cracks or damage. 2) Ensure the cylinder valve is closed. 3) Remove the safety cap from the cylinder. 4) Connect the regulator hand-tight, do not use tools. 5) Check for leaks with soapy water. 6) Open the valve slowly. Replace hoses every 2 years or if damaged. Never use open flames to check connections."
+  },
+  {
+    "id": "safety-004",
+    "category": "Safety",
+    "title": "Fire Safety with LPG",
+    "content": "In case of LPG fire: 1) Evacuate everyone immediately. 2) Call fire services (999). 3) If safe, turn off the cylinder valve. 4) Do not attempt to extinguish large fires yourself. 5) Use a dry powder fire extinguisher for small fires. Never use water on LPG fires. Keep a fire extinguisher nearby. Have an emergency plan and practice it with family members."
+  },
+  {
+    "id": "pricing-001",
+    "category": "Pricing",
+    "title": "6kg Cylinder Pricing",
+    "content": "6kg LPG cylinder prices vary by region in Kenya. Nairobi: KES 1,650. Mombasa: KES 1,720. Kisumu: KES 1,680. Nakuru: KES 1,650. Eldoret: KES 1,700. Prices include base price, transport, and taxes. First-time customers pay a KES 500 refundable deposit. Prices may change based on global LPG costs. Check the app for real-time pricing."
+  },
+  {
+    "id": "pricing-002",
+    "category": "Pricing",
+    "title": "13kg Cylinder Pricing",
+    "content": "13kg LPG cylinder prices by region. Nairobi: KES 3,450. Mombasa: KES 3,580. Kisumu: KES 3,510. Nakuru: KES 3,450. Eldoret: KES 3,550. This is our most popular size for families. Prices include delivery within city limits. Rural delivery may incur additional charges. First cylinder requires KES 500 deposit."
+  },
+  {
+    "id": "order-001",
+    "category": "Ordering",
+    "title": "How to Place an Order",
+    "content": "Order LPG through EnergiChain: 1) Open the app or website. 2) Select cylinder size (6kg, 13kg, or 50kg). 3) Choose delivery address. 4) Select delivery time slot. 5) Choose payment method (M-Pesa, card, or cash on delivery). 6) Confirm order. You'll receive a confirmation SMS and can track delivery in real-time. Average delivery time: 2-4 hours in Nairobi."
+  },
+  {
+    "id": "order-002",
+    "category": "Ordering",
+    "title": "First Time Order Process",
+    "content": "For your first order: 1) Register with phone number and location. 2) Pay KES 500 refundable cylinder deposit. 3) Select cylinder size. 4) Choose payment method for gas. 5) Schedule delivery. Our driver will bring a new cylinder with safety seal. We'll verify the cylinder with QR code. You'll receive an NFT digital twin of your cylinder on blockchain for tracking."
+  },
+  {
+    "id": "payment-001",
+    "category": "Payment",
+    "title": "M-Pesa Payment Guide",
+    "content": "Pay with M-Pesa: 1) Select M-Pesa at checkout. 2) Enter your M-Pesa phone number. 3) You'll receive an STK push prompt. 4) Enter your M-Pesa PIN. 5) Payment is confirmed instantly. You'll receive a confirmation SMS. For paybill: Business No. 247247, Account: Your phone number. M-Pesa charges apply as per Safaricom rates."
+  },
+  {
+    "id": "payment-002",
+    "category": "Payment",
+    "title": "Deposit Refund Process",
+    "content": "Get your KES 500 deposit back: 1) Return your empty cylinder to any EnergiChain hub. 2) Cylinder will be scanned and verified. 3) Refund is processed via M-Pesa within 24 hours. 4) No damage or expiry issues required. Keep your cylinder in good condition. Dented or expired cylinders may have reduced refund. Blockchain tracks all cylinder movements."
+  },
+  {
+    "id": "carbon-001",
+    "category": "Carbon Credits",
+    "title": "Earning Carbon Credits (ECO Tokens)",
+    "content": "Earn ECO tokens for clean energy use: 1) Each cylinder refill earns tokens based on CO2 saved. 2) 6kg cylinder = 5 ECO tokens. 13kg = 11 tokens. 50kg = 42 tokens. 3) Tokens are automatically credited to your account. 4) View balance in app dashboard. 5) Redeem for discounts, free deliveries, or tree planting. 1 ECO token = 1kg CO2 equivalent saved."
+  },
+  {
+    "id": "carbon-002",
+    "category": "Carbon Credits",
+    "title": "Redeeming ECO Tokens",
+    "content": "Use your ECO tokens: 1) 50 tokens = KES 100 discount on next order. 2) 100 tokens = Free delivery. 3) 200 tokens = Plant a tree in your name (GPS tracked). 4) 500 tokens = 1kg carbon offset certificate. Tokens never expire. Share your impact on social media directly from the app. Top earners featured monthly with bonus rewards."
+  },
+  {
+    "id": "delivery-001",
+    "category": "Delivery",
+    "title": "Delivery Time and Tracking",
+    "content": "Track your delivery: 1) Real-time GPS tracking in app. 2) Receive SMS when driver is 15 minutes away. 3) Average delivery: 2-4 hours in major cities. 4) Peak hours (morning and evening) may take longer. 5) Schedule advance delivery up to 7 days. 6) Rate your delivery experience. Drivers are background-checked and trained in safety."
+  },
+  {
+    "id": "delivery-002",
+    "category": "Delivery",
+    "title": "Delivery Areas and Zones",
+    "content": "EnergiChain delivers in: Nairobi (all areas), Mombasa, Kisumu, Nakuru, Eldoret, and surrounding regions. Check the app to confirm your location is covered. Rural areas: next-day delivery available. We're expanding to more regions quarterly. Cannot deliver to: restricted military zones, hazardous areas. Address must be accessible by vehicle."
+  },
+  {
+    "id": "referral-001",
+    "category": "Referral Program",
+    "title": "Becoming a Brand Ambassador",
+    "content": "Join our Ambassador Program: 1) Sign up in app under 'Referral' tab. 2) Share your unique code with friends. 3) Earn commission on their orders. 4) Three tiers: Bronze (10% commission), Gold (20%, after 10 referrals), Diamond (25%, after 50 referrals). 5) Track your referrals and earnings in app. 6) Payments via M-Pesa monthly. Top ambassadors get bonus rewards and recognition."
+  },
+  {
+    "id": "referral-002",
+    "category": "Referral Program",
+    "title": "Referral Code Usage",
+    "content": "Use a referral code: 1) Enter code during first order. 2) Get 10% discount on first purchase. 3) Ambassador gets commission. 4) Code works once per new customer. 5) Cannot combine with other promo codes. Share EnergiChain with family and friends. Both you and the ambassador benefit from clean energy adoption."
+  },
+  {
+    "id": "tech-001",
+    "category": "Technology",
+    "title": "Blockchain Digital Twin (NFT)",
+    "content": "Every cylinder has an NFT digital twin: 1) Unique blockchain ID created on first order. 2) Tracks refill history, safety inspections, ownership. 3) QR code links physical cylinder to digital twin. 4) Immutable record prevents fraud. 5) View your cylinder's full history in app. 6) Increases resale value and safety. Built on Polygon for fast, low-cost transactions."
+  },
+  {
+    "id": "tech-002",
+    "category": "Technology",
+    "title": "AI Safety Scanner",
+    "content": "Our Computer Vision AI checks cylinder safety: 1) Scan cylinder with phone camera. 2) AI detects rust, dents, valve damage, expiry date. 3) Get instant safety report. 4) Recommendations for replacement if needed. 5) Report stored on blockchain. 6) Mandatory scan before refill. Powered by TensorFlow deep learning model trained on 100,000+ cylinder images."
+  },
+  {
+    "id": "support-001",
+    "category": "Support",
+    "title": "Customer Support Channels",
+    "content": "Contact EnergiChain support: 1) 24/7 hotline: 0700-123-456. 2) WhatsApp: 0700-123-456. 3) Email: support@energichain.co.ke. 4) In-app chat with AI assistant (English/Swahili). 5) Social media: @EnergiChainKE. 6) Visit nearest hub (locations in app). Emergency gas leaks: Call 999 first, then us. Average response time: under 30 minutes."
+  },
+  {
+    "id": "support-002",
+    "category": "Support",
+    "title": "Common Issues and Solutions",
+    "content": "Quick fixes: 1) Gas not flowing - Check regulator is fully connected and valve is open. 2) Smell gas - Turn off valve, ventilate, call support. 3) Payment failed - Check M-Pesa balance, retry or use card. 4) Delivery delayed - Check app for updates, contact support if over 5 hours. 5) App not working - Update to latest version, clear cache. For emergencies, call our hotline immediately."
+  },
+  {
+    "id": "circular-001",
+    "category": "Circular Economy",
+    "title": "Cylinder Return and Reuse",
+    "content": "EnergiChain's circular model: 1) Return empty cylinders for refill or full refund. 2) We inspect, refurbish, and recertify cylinders. 3) Cylinders last 15+ years with proper care. 4) Blockchain tracks each cylinder's lifecycle. 5) 98% return rate in our network. 6) Reduces waste and carbon footprint. Every return saves 5kg CO2 vs. manufacturing new cylinder."
+  },
+  {
+    "id": "forecast-001",
+    "category": "Demand Forecasting",
+    "title": "Predictive Delivery Reminders",
+    "content": "Never run out of gas: 1) AI predicts when you'll need refill based on usage patterns. 2) Get reminder SMS 3 days before estimated empty. 3) One-tap reorder from reminder. 4) Accuracy improves over time. 5) Override predictions anytime. 6) Works even without smart meter. Based on order history and family size. Powered by LSTM neural networks."
+  }
+]

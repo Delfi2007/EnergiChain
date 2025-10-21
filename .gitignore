@@ -45,3 +45,9 @@ coverage/
 # Optional: Uncomment if you have sensitive data
 # config/secrets.json
 # credentials.json
+
+# Blockchain / Hardhat
+blockchain/cache/
+blockchain/artifacts/
+blockchain/.env
+blockchain/typechain-types/
