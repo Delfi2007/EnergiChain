@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Smart Route Optimization — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .route-map {
+      position: relative;
+      background: linear-gradient(135deg, rgba(0,30,60,0.9) 0%, rgba(0,10,30,0.95) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 2rem;
+      min-height: 500px;
+      overflow: hidden;
+    }
+    
+    .map-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(rgba(0,255,136,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: grid-move 20s linear infinite;
+    }
+    
+    @keyframes grid-move {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+    
+    .delivery-truck {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      transition: all 2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      z-index: 10;
+    }
+    
+    .truck-icon {
+      font-size: 2.5rem;
+      filter: drop-shadow(0 0 10px var(--accent));
+      animation: truck-bounce 1s ease-in-out infinite;
+    }
+    
+    @keyframes truck-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    .truck-label {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 0.5rem;
+      background: rgba(0,0,0,0.9);
+      border: 1px solid var(--accent);
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    
+    .route-line {
+      position: absolute;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+      transform-origin: left center;
+      animation: route-dash 2s linear infinite;
+      pointer-events: none;
+    }
+    
+    @keyframes route-dash {
+      0% { background-position: 0 0; }
+      100% { background-position: 40px 0; }
+    }
+    
+    .delivery-stop {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: rgba(0,255,136,0.2);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      animation: stop-pulse 2s ease-in-out infinite;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .delivery-stop:hover {
+      transform: scale(1.3);
+      background: rgba(0,255,136,0.4);
+      box-shadow: 0 0 20px var(--accent);
+    }
+    
+    @keyframes stop-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.7); }
+      50% { box-shadow: 0 0 0 10px rgba(0,255,136,0); }
+    }
+    
+    .route-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(0,255,136,0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .route-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,255,136,0.1), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .route-card:hover::before {
+      left: 100%;
+    }
+    
+    .route-card:hover {
+      background: rgba(0,255,136,0.05);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,255,136,0.2);
+    }
+    
+    .route-card.active {
+      background: rgba(0,255,136,0.1);
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 30px rgba(0,255,136,0.3);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: rgba(0,255,136,0.2);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    
+    .tracking-info {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 1rem;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      min-width: 200px;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(0,255,136,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), rgba(0,255,136,0.5));
+      border-radius: 4px;
+      transition: width 2s ease;
+      box-shadow: 0 0 10px var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">EnergiChain</div>
+    <nav>
+      <a href="index.html">← Dashboard</a>
+    </nav>
+  </header>
+  
+  <main style="padding:2rem;max-width:1400px;margin:0 auto">
+    <div style="margin-bottom:2rem">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+        <div>
+          <h2 style="font-size:2.5rem;margin-bottom:0.5rem">🚚 Smart Route Optimization</h2>
+          <p style="font-size:1.1rem;color:#999;line-height:1.6">
+            AI-powered routing engine reducing delivery time by 31% and fuel costs by 26%
+          </p>
+        </div>
+        <div style="padding:0.75rem 1.5rem;background:rgba(0,255,136,0.1);border:2px solid var(--accent);border-radius:8px">
+          <div style="font-size:0.85rem;color:#999;margin-bottom:0.25rem">Active Routes</div>
+          <div style="font-size:2rem;font-weight:700;color:var(--accent)" id="activeRoutes">3</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        <div style="padding:0.75rem 1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:8px">
+          <span style="color:#999">Time Saved:</span> <strong style="color:var(--accent);font-size:1.2rem">31%</strong>
+        </div>
+        <div style="padding:0.75rem 1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:8px">
+          <span style="color:#999">Fuel Efficiency:</span> <strong style="color:var(--accent);font-size:1.2rem">26%</strong>
+        </div>
+        <div style="padding:0.75rem 1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:8px">
+          <span style="color:#999">Monthly Savings:</span> <strong style="color:var(--accent);font-size:1.2rem">KES 4,200</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Route Map with Live Tracking -->
+    <div class="action-panel" style="margin-bottom:2rem">
+      <h3>🗺️ Live Route Tracking Map</h3>
+      <div class="route-map" id="routeMap" style="position:relative;overflow:hidden">
+        <!-- Map Background with Streets -->
+        <svg style="position:absolute;width:100%;height:100%;opacity:0.25;z-index:1" xmlns="http://www.w3.org/2000/svg">
+          <!-- Main Roads (horizontal) -->
+          <line x1="5%" y1="25%" x2="95%" y2="25%" stroke="#555" stroke-width="4"/>
+          <line x1="5%" y1="40%" x2="95%" y2="40%" stroke="#555" stroke-width="4"/>
+          <line x1="5%" y1="55%" x2="95%" y2="55%" stroke="#555" stroke-width="3"/>
+          <line x1="5%" y1="70%" x2="95%" y2="70%" stroke="#555" stroke-width="3"/>
+          
+          <!-- Main Roads (vertical) -->
+          <line x1="30%" y1="5%" x2="30%" y2="95%" stroke="#555" stroke-width="3"/>
+          <line x1="50%" y1="5%" x2="50%" y2="95%" stroke="#555" stroke-width="4"/>
+          <line x1="70%" y1="5%" x2="70%" y2="95%" stroke="#555" stroke-width="3"/>
+          <line x1="85%" y1="5%" x2="85%" y2="95%" stroke="#555" stroke-width="4"/>
+          
+          <!-- Animated Route Path -->
+          <path d="M 15 25 L 35 25 L 35 40 L 55 40 L 55 30 L 82 30 L 82 55" 
+                stroke="var(--accent)" stroke-width="3" fill="none" 
+                stroke-dasharray="8,8" opacity="0.6" stroke-linecap="round">
+            <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="0.8s" repeatCount="indefinite"/>
+          </path>
+        </svg>
+
+        <!-- Street Labels -->
+        <div style="position:absolute;left:8%;top:22%;font-size:0.65rem;color:#aaa;background:rgba(0,0,0,0.8);padding:3px 8px;border-radius:4px;border:1px solid #333;z-index:2">📍 OMR Main Road</div>
+        <div style="position:absolute;left:8%;top:37%;font-size:0.65rem;color:#aaa;background:rgba(0,0,0,0.8);padding:3px 8px;border-radius:4px;border:1px solid #333;z-index:2">Rajiv Gandhi Salai</div>
+        <div style="position:absolute;left:8%;top:52%;font-size:0.65rem;color:#aaa;background:rgba(0,0,0,0.8);padding:3px 8px;border-radius:4px;border:1px solid #333;z-index:2">East Coast Road</div>
+        <div style="position:absolute;left:27%;top:8%;font-size:0.65rem;color:#aaa;background:rgba(0,0,0,0.8);padding:3px 8px;border-radius:4px;border:1px solid #333;transform:rotate(-90deg);transform-origin:center;z-index:2">Velachery Rd</div>
+        <div style="position:absolute;left:82%;top:8%;font-size:0.65rem;color:#aaa;background:rgba(0,0,0,0.8);padding:3px 8px;border-radius:4px;border:1px solid #333;transform:rotate(-90deg);transform-origin:center;z-index:2">Navalur Main Rd</div>
+
+        <!-- Destination Marker (Navalur) -->
+        <div style="position:absolute;left:82%;top:55%;z-index:50;text-align:center">
+          <div style="font-size:2.5rem;filter:drop-shadow(0 0 10px var(--accent));animation:pulse 2s ease-in-out infinite">📍</div>
+          <div style="background:var(--accent);color:#000;padding:4px 10px;border-radius:6px;font-weight:700;font-size:0.75rem;margin-top:-5px;box-shadow:0 0 15px var(--accent)">NAVALUR</div>
+          <div style="font-size:0.6rem;color:#999;margin-top:2px">Final Destination</div>
+        </div>
+
+        <div class="map-grid" style="opacity:0.1"></div>
+        
+        <!-- Tracking Info Panel -->
+        <div class="tracking-info" id="trackingInfo" style="z-index:100">
+          <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Tracking Order</div>
+          <div style="font-size:1.3rem;font-weight:700;color:var(--accent);margin-bottom:1rem" id="trackingOrderId">ORD-7823</div>
+          <div style="display:grid;gap:0.5rem;font-size:0.85rem">
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">Route:</span>
+              <strong id="trackingRoute">RT-001</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">Current:</span>
+              <strong style="color:var(--accent);font-size:0.8rem" id="currentLocation">OMR Thoraipakkam</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">Progress:</span>
+              <strong style="color:var(--accent)" id="trackingProgress">65%</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">ETA Navalur:</span>
+              <strong id="trackingETA">12 min</strong>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:65%"></div>
+          </div>
+          <button onclick="trackRandomOrder()" style="width:100%;margin-top:1rem;padding:0.75rem;font-size:0.85rem">
+            📍 Track Another Order
+          </button>
+        </div>
+        
+        <!-- Delivery Stops (will be added dynamically) -->
+        <!-- Trucks (will be added dynamically) -->
+      </div>
+      <div style="margin-top:1rem;text-align:center;color:#999;font-size:0.85rem">
+        <span class="live-badge">🔴 Live GPS tracking • Updates every 5 seconds</span>
+      </div>
+    </div>
+
+    <!-- Route Cards with 3D Truck Visualizations -->
+    <div style="margin-bottom:2rem">
+      <h3 style="margin-bottom:1rem">🚚 Your Delivery Route</h3>
+      <div style="display:grid;grid-template-columns:1fr;max-width:600px;margin:0 auto">
+        <!-- Route 1 -->
+        <div class="route-card active" data-route="RT-001" onclick="selectRoute('RT-001')">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+            <div>
+              <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">RT-001</div>
+              <div style="font-size:0.85rem;color:#999">OMR Thoraipakkam → Navalur</div>
+            </div>
+            <div class="status-badge">
+              <span class="live-badge">● EN ROUTE</span>
+            </div>
+          </div>
+          
+          <!-- Route Details -->
+          <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:1rem;margin-bottom:1rem;border-left:3px solid var(--accent)">
+            <div style="font-size:0.75rem;color:#999;margin-bottom:0.5rem">📍 CURRENT LOCATION</div>
+            <div style="font-size:1rem;font-weight:600;margin-bottom:1rem">Rajiv Gandhi Salai, Thoraipakkam</div>
+            <div style="font-size:0.75rem;color:#999;margin-bottom:0.5rem">🏁 DESTINATION</div>
+            <div style="font-size:1rem;font-weight:600;color:var(--accent)">Navalur, Chennai</div>
+          </div>
+          
+          <!-- 3D Truck Visualization -->
+          <div style="text-align:center;padding:1.5rem;background:rgba(0,0,0,0.3);border-radius:8px;margin-bottom:1rem">
+            <div style="font-size:4rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 20px var(--accent))">🚚</div>
+            <div style="display:flex;justify-content:center;gap:0.5rem;margin-bottom:1rem">
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out infinite;position:relative">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.6rem">✓</div>
+              </div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.2s infinite;position:relative">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.6rem">✓</div>
+              </div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.5);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.4s infinite;position:relative">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.7rem;color:var(--accent)">🚚</div>
+              </div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.1);border:2px solid #555;border-radius:50%"></div>
+            </div>
+            <div style="font-size:0.8rem;color:#999">Stop 3 of 4 • Arriving Navalur</div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div style="padding:0.75rem;background:rgba(0,255,136,0.05);border-radius:6px;text-align:center">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Distance</div>
+              <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">8.5 km</div>
+            </div>
+            <div style="padding:0.75rem;background:rgba(0,255,136,0.05);border-radius:6px;text-align:center">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">ETA</div>
+              <div style="font-size:1.2rem;font-weight:700">12 min</div>
+            </div>
+          </div>
+          
+          <div style="background:rgba(0,255,136,0.05);padding:0.75rem;border-radius:6px;margin-bottom:1rem">
+            <div style="font-size:0.75rem;color:#999;margin-bottom:0.5rem">📋 DELIVERY STOPS</div>
+            <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.8rem">
+              <div style="display:flex;align-items:center;gap:0.5rem">
+                <span style="color:var(--accent)">✓</span>
+                <span style="text-decoration:line-through;color:#666">Perungudi Junction</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem">
+                <span style="color:var(--accent)">✓</span>
+                <span style="text-decoration:line-through;color:#666">Sholinganallur</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem">
+                <span style="color:var(--accent)">🚚</span>
+                <span style="font-weight:600;color:var(--accent)">Karapakkam (Current)</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem">
+                <span style="color:#666">○</span>
+                <span>Navalur (Final)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:1rem;font-size:0.85rem;color:#999">
+            <div>⛽ 88% efficient</div>
+            <div>•</div>
+            <div>⏱️ 65% complete</div>
+          </div>
+        </div>
+
+        <!-- Route 2 - Hidden -->
+        <div class="route-card" data-route="RT-002" onclick="selectRoute('RT-002')" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+            <div>
+              <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">RT-002</div>
+              <div style="font-size:0.85rem;color:#999">Westlands → Kiambu</div>
+            </div>
+            <div class="status-badge">
+              <span class="live-badge">● ACTIVE</span>
+            </div>
+          </div>
+          
+          <!-- 3D Truck Visualization -->
+          <div style="text-align:center;padding:1.5rem;background:rgba(0,0,0,0.3);border-radius:8px;margin-bottom:1rem">
+            <div style="font-size:4rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 20px var(--accent))">🚚</div>
+            <div style="display:flex;justify-content:center;gap:0.5rem;margin-bottom:1rem">
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out infinite"></div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.2s infinite"></div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.4s infinite"></div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.6s infinite"></div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.8s infinite"></div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 1s infinite"></div>
+            </div>
+            <div style="font-size:0.8rem;color:#999">6 delivery stops</div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div style="padding:0.75rem;background:rgba(0,255,136,0.05);border-radius:6px;text-align:center">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Distance</div>
+              <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">18.7 km</div>
+            </div>
+            <div style="padding:0.75rem;background:rgba(0,255,136,0.05);border-radius:6px;text-align:center">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">ETA</div>
+              <div style="font-size:1.2rem;font-weight:700">42 min</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:1rem;font-size:0.85rem;color:#999">
+            <div>⛽ 78% efficient</div>
+            <div>•</div>
+            <div>⏱️ 42% complete</div>
+          </div>
+        </div>
+
+        <!-- Route 3 - Hidden -->
+        <div class="route-card" data-route="RT-003" onclick="selectRoute('RT-003')" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+            <div>
+              <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">RT-003</div>
+              <div style="font-size:0.85rem;color:#999">Industrial Area → Eastlands</div>
+            </div>
+            <div class="status-badge">
+              <span class="live-badge">● ACTIVE</span>
+            </div>
+          </div>
+          
+          <!-- 3D Truck Visualization -->
+          <div style="text-align:center;padding:1.5rem;background:rgba(0,0,0,0.3);border-radius:8px;margin-bottom:1rem">
+            <div style="font-size:4rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 20px var(--accent))">🚚</div>
+            <div style="display:flex;justify-content:center;gap:0.5rem;margin-bottom:1rem">
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out infinite"></div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.2s infinite"></div>
+              <div style="width:30px;height:30px;background:rgba(0,255,136,0.3);border:2px solid var(--accent);border-radius:50%;animation:pulse 1s ease-in-out 0.4s infinite"></div>
+            </div>
+            <div style="font-size:0.8rem;color:#999">3 delivery stops</div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div style="padding:0.75rem;background:rgba(0,255,136,0.05);border-radius:6px;text-align:center">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Distance</div>
+              <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">8.1 km</div>
+            </div>
+            <div style="padding:0.75rem;background:rgba(0,255,136,0.05);border-radius:6px;text-align:center">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">ETA</div>
+              <div style="font-size:1.2rem;font-weight:700">19 min</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:1rem;font-size:0.85rem;color:#999">
+            <div>⛽ 92% efficient</div>
+            <div>•</div>
+            <div>⏱️ 88% complete</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Analytics -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem">
+      <div class="action-panel">
+        <h3>📈 Route Efficiency Comparison</h3>
+        <div class="chart-container" style="height:300px">
+          <canvas id="efficiencyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="action-panel">
+        <h3>⚡ AI Optimization Engine</h3>
+        <div style="margin-top:1rem">
+          <div style="display:grid;gap:1rem">
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Algorithm</div>
+              <div style="font-weight:600">Dynamic Clustering + Real-time Traffic API</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Optimization Factors</div>
+              <div style="font-weight:600">Distance • Traffic • Fuel • Time Windows • Priority</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Processing Time</div>
+              <div style="font-weight:600">< 2 seconds for 50 stops</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Success Rate</div>
+              <div style="font-weight:600;color:var(--accent)">98.7% on-time delivery</div>
+            </div>
+          </div>
+          
+          <button onclick="optimizeNewRoute()" style="width:100%;margin-top:1.5rem;padding:1rem;font-size:1rem">
+            🚀 Optimize New Route
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Tracking Form -->
+    <div class="action-panel">
+      <h3>📦 Track Your Order</h3>
+      <div style="display:grid;gap:1rem;max-width:600px;margin-top:1rem">
+        <div style="display:flex;gap:1rem">
+          <input type="text" id="orderInput" placeholder="Enter Order ID (e.g., ORD-7823)" style="flex:1;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff;font-size:1rem">
+          <button onclick="trackOrder()" style="padding:1rem 2rem;font-size:1rem">
+            📍 Track
+          </button>
+        </div>
+        <div id="trackingResult" style="display:none;padding:1.5rem;background:rgba(0,255,136,0.05);border:1px solid var(--accent);border-radius:8px">
+          <!-- Tracking result will appear here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    let currentRoute = 'RT-001';
+    let trucks = [];
+    let stops = [];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeMap();
+      initEfficiencyChart();
+      startLiveTracking();
+    });
+
+    function initializeMap() {
+      const map = document.getElementById('routeMap');
+      
+      // Define routes with stops and truck positions - Chennai to Navalur route
+      const routes = {
+        'RT-001': {
+          color: '#00ff88',
+          stops: [
+            {x: 15, y: 25, label: '1', name: 'Perungudi Junction'},
+            {x: 35, y: 40, label: '2', name: 'Sholinganallur'},
+            {x: 60, y: 37, label: '3', name: 'Karapakkam'},
+            {x: 82, y: 55, label: '4', name: 'Navalur'}
+          ],
+          truck: {x: 55, y: 38, progress: 65},
+          locations: ['Perungudi Junction', 'Sholinganallur', 'Karapakkam', 'Navalur']
+        }
+      };
+
+      // Create stops for RT-001 only
+      Object.entries(routes).forEach(([routeId, route]) => {
+        route.stops.forEach((stop, index) => {
+          const stopEl = document.createElement('div');
+          stopEl.className = 'delivery-stop';
+          stopEl.style.left = stop.x + '%';
+          stopEl.style.top = stop.y + '%';
+          stopEl.textContent = stop.label;
+          stopEl.title = stop.name;
+          stopEl.onclick = () => showStopInfo(routeId, stop.label, stop.name);
+          
+          // Mark completed stops
+          if (index < 2) {
+            stopEl.style.background = 'var(--accent)';
+            stopEl.style.opacity = '0.5';
+          }
+          
+          map.appendChild(stopEl);
+          stops.push({el: stopEl, name: stop.name});
+        });
+
+        // Create truck
+        const truckEl = document.createElement('div');
+        truckEl.className = 'delivery-truck';
+        truckEl.dataset.route = routeId;
+        truckEl.style.left = route.truck.x + '%';
+        truckEl.style.top = route.truck.y + '%';
+        truckEl.innerHTML = `
+          <div class="truck-icon">🚚</div>
+          <div class="truck-label">${routeId}</div>
+        `;
+        truckEl.onclick = () => selectRoute(routeId);
+        map.appendChild(truckEl);
+        trucks.push({el: truckEl, route: routeId, data: route});
+      });
+    }
+
+    function selectRoute(routeId) {
+      currentRoute = routeId;
+      
+      // Update route cards
+      document.querySelectorAll('.route-card').forEach(card => {
+        card.classList.remove('active');
+        if (card.dataset.route === routeId) {
+          card.classList.add('active');
+        }
+      });
+      
+      // Highlight truck on map
+      trucks.forEach(truck => {
+        if (truck.route === routeId) {
+          truck.el.style.transform = 'scale(1.2)';
+          truck.el.style.zIndex = '20';
+        } else {
+          truck.el.style.transform = 'scale(1)';
+          truck.el.style.zIndex = '10';
+        }
+      });
+      
+      // Update tracking info with real location
+      const routeData = {
+        'RT-001': {
+          progress: 65, 
+          eta: '12 min', 
+          order: 'ORD-7823',
+          location: 'OMR Thoraipakkam',
+          locations: ['Perungudi Junction', 'Sholinganallur', 'Karapakkam', 'Navalur']
+        }
+      };
+      
+      const data = routeData[routeId];
+      document.getElementById('trackingRoute').textContent = routeId;
+      document.getElementById('trackingProgress').textContent = data.progress + '%';
+      document.getElementById('trackingETA').textContent = data.eta;
+      document.getElementById('trackingOrderId').textContent = data.order;
+      document.getElementById('progressFill').style.width = data.progress + '%';
+      
+      // Update current location
+      if (document.getElementById('currentLocation')) {
+        document.getElementById('currentLocation').textContent = data.location;
+      }
+    }
+
+    let locationIndex = 2; // Start at Karapakkam (3rd stop)
+    const locations = ['Perungudi Junction', 'Sholinganallur', 'Karapakkam', 'Navalur'];
+    
+    function startLiveTracking() {
+      setInterval(() => {
+        // Simulate truck movement toward Navalur
+        trucks.forEach(truck => {
+          const currentLeft = parseFloat(truck.el.style.left);
+          const currentTop = parseFloat(truck.el.style.top);
+          
+          // Move truck gradually toward Navalur (82%, 55%)
+          const targetX = 82;
+          const targetY = 55;
+          
+          // Small incremental movement
+          const newLeft = currentLeft + (targetX - currentLeft) * 0.02 + (Math.random() - 0.5) * 0.5;
+          const newTop = currentTop + (targetY - currentTop) * 0.02 + (Math.random() - 0.5) * 0.5;
+          
+          truck.el.style.left = newLeft + '%';
+          truck.el.style.top = newTop + '%';
+          
+          // Update progress and ETA
+          const progress = Math.min(95, parseInt(document.getElementById('trackingProgress').textContent) + 1);
+          document.getElementById('trackingProgress').textContent = progress + '%';
+          document.getElementById('progressFill').style.width = progress + '%';
+          
+          // Update ETA (decrease by 1 min every 5 updates)
+          const currentETA = parseInt(document.getElementById('trackingETA').textContent);
+          if (currentETA > 1 && Math.random() > 0.7) {
+            document.getElementById('trackingETA').textContent = (currentETA - 1) + ' min';
+          }
+          
+          // Update location periodically
+          if (Math.random() > 0.85 && locationIndex < locations.length - 1) {
+            locationIndex++;
+            if (document.getElementById('currentLocation')) {
+              document.getElementById('currentLocation').textContent = locations[locationIndex];
+            }
+          }
+        });
+      }, 5000);
+    }
+
+    function trackOrder() {
+      const orderId = document.getElementById('orderInput').value.trim() || 'ORD-' + Math.floor(Math.random() * 9000 + 1000);
+      const orders = {
+        'ORD-7823': {
+          route: 'RT-001', 
+          status: 'En Route to Navalur', 
+          progress: 65, 
+          eta: '12 min', 
+          driver: 'Rajesh Kumar', 
+          phone: '+91 98400 12345',
+          currentLocation: 'Karapakkam, OMR',
+          destination: 'Navalur, Chennai'
+        }
+      };
+      
+      const order = orders[orderId] || {
+        route: 'RT-001',
+        status: 'In Transit',
+        progress: Math.floor(Math.random() * 60 + 30),
+        eta: Math.floor(Math.random() * 40 + 10) + ' min',
+        driver: 'Driver #' + Math.floor(Math.random() * 100),
+        phone: '+91 984XX XXXXX',
+        currentLocation: 'OMR, Chennai',
+        destination: 'Navalur, Chennai'
+      };
+      
+      document.getElementById('orderInput').value = orderId;
+      document.getElementById('trackingResult').style.display = 'block';
+      document.getElementById('trackingResult').innerHTML = `
+        <div style="display:grid;gap:1rem">
+          <div style="text-align:center;padding-bottom:1rem;border-bottom:1px solid rgba(0,255,136,0.3)">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:0.5rem">${orderId}</div>
+            <div style="display:inline-block;padding:0.5rem 1rem;background:rgba(0,255,136,0.2);border:1px solid var(--accent);border-radius:20px;font-weight:600">
+              ${order.status}
+            </div>
+          </div>
+          <div style="display:grid;gap:0.75rem">
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">Route:</span>
+              <strong style="color:var(--accent)">${order.route}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <span style="color:#999">Current Location:</span>
+              <strong style="text-align:right;font-size:0.9rem">${order.currentLocation}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <span style="color:#999">Destination:</span>
+              <strong style="text-align:right;font-size:0.9rem;color:var(--accent)">${order.destination}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">Progress:</span>
+              <strong>${order.progress}%</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">ETA:</span>
+              <strong style="color:var(--accent)">${order.eta}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">Driver:</span>
+              <strong>${order.driver}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:#999">Contact:</span>
+              <strong>${order.phone}</strong>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${order.progress}%"></div>
+          </div>
+          <button onclick="selectRoute('${order.route}')" style="width:100%;margin-top:0.5rem">
+            🗺️ View on Map
+          </button>
+        </div>
+      `;
+      
+      selectRoute(order.route);
+    }
+
+    function trackRandomOrder() {
+      const orders = ['ORD-7823', 'ORD-8934', 'ORD-9045'];
+      document.getElementById('orderInput').value = orders[Math.floor(Math.random() * orders.length)];
+      trackOrder();
+    }
+
+    function showStopInfo(routeId, stopLabel) {
+      alert(`Stop ${stopLabel} on ${routeId}\n\nAddress: Sample Location ${stopLabel}\nCustomer: Customer #${Math.floor(Math.random() * 1000)}\nItems: ${Math.floor(Math.random() * 3 + 1)} cylinders`);
+    }
+
+    function optimizeNewRoute() {
+      const routeId = 'RT-00' + Math.floor(Math.random() * 900 + 100);
+      const stops = Math.floor(Math.random() * 5 + 3);
+      const distance = (Math.random() * 20 + 5).toFixed(1);
+      const time = Math.floor(Math.random() * 40 + 15);
+      
+      alert(`🚀 Route Optimized!\n\nRoute ID: ${routeId}\nStops: ${stops}\nDistance: ${distance} km\nEstimated Time: ${time} min\nFuel Efficiency: ${Math.floor(Math.random() * 20 + 75)}%\n\n✅ Route added to active routes`);
+    }
+
+    function initEfficiencyChart() {
+      const ctx = document.getElementById('efficiencyChart').getContext('2d');
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Traditional', 'AI-Optimized'],
+          datasets: [
+            {
+              label: 'Avg. Delivery Time (min)',
+              data: [58, 40],
+              backgroundColor: 'rgba(255,107,107,0.5)',
+              borderColor: 'rgba(255,107,107,1)',
+              borderWidth: 2
+            },
+            {
+              label: 'Fuel Consumption (L)',
+              data: [12.5, 9.2],
+              backgroundColor: 'rgba(0,255,136,0.5)',
+              borderColor: 'rgba(0,255,136,1)',
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { color: '#999', font: { size: 11 } }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#999' }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#999' },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

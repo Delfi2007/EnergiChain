@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Predictive Demand Forecasting — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .map-container {
+      position: relative;
+      background: linear-gradient(135deg, rgba(0,20,40,0.8) 0%, rgba(0,10,20,0.9) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 2rem;
+      min-height: 500px;
+      overflow: hidden;
+    }
+    
+    .map-region {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .map-region:hover {
+      transform: scale(1.1);
+    }
+    
+    .region-marker {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .pulse-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      animation: pulse-ring 2s ease-out infinite;
+    }
+    
+    @keyframes pulse-ring {
+      0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+      }
+    }
+    
+    .region-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 20px var(--accent);
+      animation: blink 2s ease-in-out infinite;
+    }
+    
+    .region-label {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+      text-shadow: 0 0 10px rgba(0,255,136,0.5);
+    }
+    
+    .region-stats {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.9);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    
+    .map-region:hover .region-stats {
+      opacity: 1;
+    }
+    
+    .digital-twin-cylinder {
+      width: 60px;
+      height: 120px;
+      margin: 0 auto;
+      position: relative;
+    }
+    
+    .cylinder-fill {
+      position: absolute;
+      bottom: 0;
+      left: 20%;
+      right: 20%;
+      background: linear-gradient(180deg, var(--accent) 0%, rgba(0,255,136,0.5) 100%);
+      border-radius: 4px;
+      transition: height 1s ease;
+      box-shadow: 0 0 20px rgba(0,255,136,0.5);
+    }
+    
+    .forecast-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(0,255,136,0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .forecast-card:hover {
+      background: rgba(0,255,136,0.05);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,255,136,0.2);
+    }
+    
+    .forecast-card.selected {
+      background: rgba(0,255,136,0.1);
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 30px rgba(0,255,136,0.3);
+    }
+    
+    .trend-up {
+      color: var(--accent);
+    }
+    
+    .trend-down {
+      color: #ff6b6b;
+    }
+    
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(0,255,136,0.1);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .ai-badge::before {
+      content: "🤖";
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">EnergiChain</div>
+    <nav>
+      <a href="index.html">← Dashboard</a>
+    </nav>
+  </header>
+  
+  <main style="padding:2rem;max-width:1400px;margin:0 auto">
+    <div style="margin-bottom:2rem">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+        <div>
+          <h2 style="font-size:2.5rem;margin-bottom:0.5rem">📊 Predictive Demand Forecasting</h2>
+          <p style="font-size:1.1rem;color:#999;line-height:1.6">
+            AI-powered demand prediction across Kenya using LSTM + XGBoost ensemble models
+          </p>
+        </div>
+        <div class="ai-badge">
+          LIVE FORECASTING
+        </div>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        <div style="padding:0.75rem 1.5rem;background:rgba(0,255,136,0.1);border:1px solid var(--accent);border-radius:8px">
+          <span style="color:#999">Model Accuracy:</span> <strong style="color:var(--accent);font-size:1.2rem" id="modelAccuracy">94.2%</strong>
+        </div>
+        <div style="padding:0.75rem 1.5rem;background:rgba(0,255,136,0.1);border:1px solid var(--accent);border-radius:8px">
+          <span style="color:#999">Stockout Reduction:</span> <strong style="color:var(--accent);font-size:1.2rem">43%</strong>
+        </div>
+        <div style="padding:0.75rem 1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:8px">
+          <span style="color:#999">Last Updated:</span> <strong id="lastUpdate">Just now</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Kenya Map -->
+    <div class="action-panel" style="margin-bottom:2rem">
+      <h3>🗺️ Interactive Regional Demand Map</h3>
+      <div class="map-container">
+        <!-- Kenya Map Outline (SVG) -->
+        <svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;opacity:0.1" viewBox="0 0 200 250">
+          <path d="M100,20 L180,80 L180,180 L100,230 L20,180 L20,80 Z" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        </svg>
+        
+        <!-- Nairobi (Central) -->
+        <div class="map-region" style="top:45%;left:50%" data-region="nairobi">
+          <div class="region-marker">
+            <div class="pulse-ring"></div>
+            <div class="region-dot"></div>
+            <div class="region-label">Nairobi</div>
+            <div class="region-stats">
+              <div><strong>Current:</strong> <span id="nairobi-current">850</span> tons/month</div>
+              <div><strong>Forecast:</strong> <span id="nairobi-forecast">920</span> tons</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mombasa (Southeast Coast) -->
+        <div class="map-region" style="top:65%;left:75%" data-region="mombasa">
+          <div class="region-marker">
+            <div class="pulse-ring" style="animation-delay:0.4s"></div>
+            <div class="region-dot"></div>
+            <div class="region-label">Mombasa</div>
+            <div class="region-stats">
+              <div><strong>Current:</strong> <span id="mombasa-current">620</span> tons/month</div>
+              <div><strong>Forecast:</strong> <span id="mombasa-forecast">640</span> tons</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Kisumu (West) -->
+        <div class="map-region" style="top:40%;left:15%" data-region="kisumu">
+          <div class="region-marker">
+            <div class="pulse-ring" style="animation-delay:0.8s"></div>
+            <div class="region-dot"></div>
+            <div class="region-label">Kisumu</div>
+            <div class="region-stats">
+              <div><strong>Current:</strong> <span id="kisumu-current">380</span> tons/month</div>
+              <div><strong>Forecast:</strong> <span id="kisumu-forecast">410</span> tons</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Nakuru (Northwest) -->
+        <div class="map-region" style="top:30%;left:35%" data-region="nakuru">
+          <div class="region-marker">
+            <div class="pulse-ring" style="animation-delay:1.2s"></div>
+            <div class="region-dot"></div>
+            <div class="region-label">Nakuru</div>
+            <div class="region-stats">
+              <div><strong>Current:</strong> <span id="nakuru-current">290</span> tons/month</div>
+              <div><strong>Forecast:</strong> <span id="nakuru-forecast">280</span> tons</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Eldoret (North) -->
+        <div class="map-region" style="top:18%;left:28%" data-region="eldoret">
+          <div class="region-marker">
+            <div class="pulse-ring" style="animation-delay:1.6s"></div>
+            <div class="region-dot"></div>
+            <div class="region-label">Eldoret</div>
+            <div class="region-stats">
+              <div><strong>Current:</strong> <span id="eldoret-current">245</span> tons/month</div>
+              <div><strong>Forecast:</strong> <span id="eldoret-forecast">265</span> tons</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Digital Twin Visualizations & Forecasts -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem">
+      <!-- Nairobi Card -->
+      <div class="forecast-card" data-region="nairobi" onclick="selectRegion('nairobi')">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+          <div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">Nairobi</div>
+            <div style="font-size:0.8rem;color:#999">Central Region</div>
+          </div>
+          <div style="font-size:2rem;line-height:1">🏙️</div>
+        </div>
+        
+        <div class="digital-twin-cylinder">
+          <svg viewBox="0 0 60 120" style="width:100%;height:100%">
+            <rect x="12" y="10" width="36" height="100" fill="rgba(0,255,136,0.1)" stroke="var(--accent)" stroke-width="1.5" rx="3"/>
+            <rect x="12" y="10" width="36" height="0" fill="url(#fillGrad)" class="cylinder-fill-svg" id="nairobi-fill">
+              <animate attributeName="height" from="0" to="92" dur="1s" fill="freeze"/>
+              <animate attributeName="y" from="110" to="18" dur="1s" fill="freeze"/>
+            </rect>
+          </svg>
+        </div>
+        
+        <div style="text-align:center;margin-top:1rem">
+          <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Current Demand</div>
+          <div style="font-size:1.5rem;font-weight:700">850 <span style="font-size:0.9rem;color:#999">tons</span></div>
+        </div>
+        
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #333">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#999;font-size:0.85rem">Next Month</span>
+            <span style="font-size:1.2rem;font-weight:700;color:var(--accent)">↗ 920</span>
+          </div>
+          <div style="margin-top:0.5rem;font-size:0.75rem;color:#666">
+            +8.2% increase • High confidence: 96%
+          </div>
+        </div>
+      </div>
+
+      <!-- Mombasa Card -->
+      <div class="forecast-card" data-region="mombasa" onclick="selectRegion('mombasa')">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+          <div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">Mombasa</div>
+            <div style="font-size:0.8rem;color:#999">Coast Region</div>
+          </div>
+          <div style="font-size:2rem;line-height:1">🏖️</div>
+        </div>
+        
+        <div class="digital-twin-cylinder">
+          <svg viewBox="0 0 60 120" style="width:100%;height:100%">
+            <rect x="12" y="10" width="36" height="100" fill="rgba(0,255,136,0.1)" stroke="var(--accent)" stroke-width="1.5" rx="3"/>
+            <rect x="12" y="47" width="36" height="63" fill="url(#fillGrad)" class="cylinder-fill-svg">
+              <animate attributeName="height" from="0" to="63" dur="1s" fill="freeze"/>
+              <animate attributeName="y" from="110" to="47" dur="1s" fill="freeze"/>
+            </rect>
+          </svg>
+        </div>
+        
+        <div style="text-align:center;margin-top:1rem">
+          <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Current Demand</div>
+          <div style="font-size:1.5rem;font-weight:700">620 <span style="font-size:0.9rem;color:#999">tons</span></div>
+        </div>
+        
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #333">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#999;font-size:0.85rem">Next Month</span>
+            <span style="font-size:1.2rem;font-weight:700;color:var(--accent)">↗ 640</span>
+          </div>
+          <div style="margin-top:0.5rem;font-size:0.75rem;color:#666">
+            +3.2% increase • High confidence: 93%
+          </div>
+        </div>
+      </div>
+
+      <!-- Kisumu Card -->
+      <div class="forecast-card" data-region="kisumu" onclick="selectRegion('kisumu')">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+          <div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">Kisumu</div>
+            <div style="font-size:0.8rem;color:#999">Western Region</div>
+          </div>
+          <div style="font-size:2rem;line-height:1">🌊</div>
+        </div>
+        
+        <div class="digital-twin-cylinder">
+          <svg viewBox="0 0 60 120" style="width:100%;height:100%">
+            <rect x="12" y="10" width="36" height="100" fill="rgba(0,255,136,0.1)" stroke="var(--accent)" stroke-width="1.5" rx="3"/>
+            <rect x="12" y="72" width="36" height="38" fill="url(#fillGrad)" class="cylinder-fill-svg">
+              <animate attributeName="height" from="0" to="38" dur="1s" fill="freeze"/>
+              <animate attributeName="y" from="110" to="72" dur="1s" fill="freeze"/>
+            </rect>
+          </svg>
+        </div>
+        
+        <div style="text-align:center;margin-top:1rem">
+          <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Current Demand</div>
+          <div style="font-size:1.5rem;font-weight:700">380 <span style="font-size:0.9rem;color:#999">tons</span></div>
+        </div>
+        
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #333">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#999;font-size:0.85rem">Next Month</span>
+            <span style="font-size:1.2rem;font-weight:700;color:var(--accent)">↗ 410</span>
+          </div>
+          <div style="margin-top:0.5rem;font-size:0.75rem;color:#666">
+            +7.9% increase • High confidence: 91%
+          </div>
+        </div>
+      </div>
+
+      <!-- Nakuru Card -->
+      <div class="forecast-card" data-region="nakuru" onclick="selectRegion('nakuru')">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+          <div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">Nakuru</div>
+            <div style="font-size:0.8rem;color:#999">Rift Valley</div>
+          </div>
+          <div style="font-size:2rem;line-height:1">⛰️</div>
+        </div>
+        
+        <div class="digital-twin-cylinder">
+          <svg viewBox="0 0 60 120" style="width:100%;height:100%">
+            <rect x="12" y="10" width="36" height="100" fill="rgba(0,255,136,0.1)" stroke="var(--accent)" stroke-width="1.5" rx="3"/>
+            <rect x="12" y="81" width="36" height="29" fill="url(#fillGrad)" class="cylinder-fill-svg">
+              <animate attributeName="height" from="0" to="29" dur="1s" fill="freeze"/>
+              <animate attributeName="y" from="110" to="81" dur="1s" fill="freeze"/>
+            </rect>
+          </svg>
+        </div>
+        
+        <div style="text-align:center;margin-top:1rem">
+          <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Current Demand</div>
+          <div style="font-size:1.5rem;font-weight:700">290 <span style="font-size:0.9rem;color:#999">tons</span></div>
+        </div>
+        
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #333">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#999;font-size:0.85rem">Next Month</span>
+            <span style="font-size:1.2rem;font-weight:700;color:#ff6b6b">↘ 280</span>
+          </div>
+          <div style="margin-top:0.5rem;font-size:0.75rem;color:#666">
+            -3.4% decrease • Medium confidence: 87%
+          </div>
+        </div>
+      </div>
+
+      <!-- Eldoret Card -->
+      <div class="forecast-card" data-region="eldoret" onclick="selectRegion('eldoret')">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+          <div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">Eldoret</div>
+            <div style="font-size:0.8rem;color:#999">North Rift</div>
+          </div>
+          <div style="font-size:2rem;line-height:1">🌾</div>
+        </div>
+        
+        <div class="digital-twin-cylinder">
+          <svg viewBox="0 0 60 120" style="width:100%;height:100%">
+            <rect x="12" y="10" width="36" height="100" fill="rgba(0,255,136,0.1)" stroke="var(--accent)" stroke-width="1.5" rx="3"/>
+            <rect x="12" y="86" width="36" height="24" fill="url(#fillGrad)" class="cylinder-fill-svg">
+              <animate attributeName="height" from="0" to="24" dur="1s" fill="freeze"/>
+              <animate attributeName="y" from="110" to="86" dur="1s" fill="freeze"/>
+            </rect>
+          </svg>
+        </div>
+        
+        <div style="text-align:center;margin-top:1rem">
+          <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Current Demand</div>
+          <div style="font-size:1.5rem;font-weight:700">245 <span style="font-size:0.9rem;color:#999">tons</span></div>
+        </div>
+        
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #333">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#999;font-size:0.85rem">Next Month</span>
+            <span style="font-size:1.2rem;font-weight:700;color:var(--accent)">↗ 265</span>
+          </div>
+          <div style="margin-top:0.5rem;font-size:0.75rem;color:#666">
+            +8.2% increase • High confidence: 94%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Regional Analysis -->
+    <div class="action-panel" style="margin-bottom:2rem">
+      <h3>📈 Demand Trend Analysis (Next 6 Months)</h3>
+      <div class="chart-container" style="height:350px">
+        <canvas id="demandChart" class="chart-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- AI Model Info & Stock Recommendations -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+      <div class="action-panel">
+        <h3>🤖 AI Model Performance</h3>
+        <div style="margin-top:1rem">
+          <div style="display:grid;gap:1rem">
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Model Architecture</div>
+              <div style="font-weight:600">LSTM + XGBoost Ensemble</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Training Data</div>
+              <div style="font-weight:600">24 months historical • 15 features</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Last Retrained</div>
+              <div style="font-weight:600" id="lastTrained">2 days ago</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Mean Absolute Error</div>
+              <div style="font-weight:600">±18 tons (2.1%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-panel">
+        <h3>📦 Stock Recommendations</h3>
+        <div style="margin-top:1rem">
+          <div style="padding:1.5rem;background:rgba(0,255,136,0.1);border:2px solid var(--accent);border-radius:8px;margin-bottom:1rem">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:0.5rem">Recommended Total Stock</div>
+            <div style="font-size:2.5rem;font-weight:700;color:var(--accent)">2,515 <span style="font-size:1rem;color:#999">tons</span></div>
+            <div style="font-size:0.85rem;color:#666;margin-top:0.5rem">For next month across all regions</div>
+          </div>
+          
+          <div style="display:grid;gap:0.75rem">
+            <div style="display:flex;justify-content:space-between;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:6px">
+              <span style="color:#ccc">Nairobi</span>
+              <strong style="color:var(--accent)">920 tons</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:6px">
+              <span style="color:#ccc">Mombasa</span>
+              <strong style="color:var(--accent)">640 tons</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:6px">
+              <span style="color:#ccc">Kisumu</span>
+              <strong style="color:var(--accent)">410 tons</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:6px">
+              <span style="color:#ccc">Nakuru</span>
+              <strong style="color:#ff6b6b">280 tons ↓</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:6px">
+              <span style="color:#ccc">Eldoret</span>
+              <strong style="color:var(--accent)">265 tons</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    // SVG Gradient Definition
+    const svg = document.querySelector('svg');
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    gradient.setAttribute('id', 'fillGrad');
+    gradient.setAttribute('x1', '0%');
+    gradient.setAttribute('y1', '0%');
+    gradient.setAttribute('x2', '0%');
+    gradient.setAttribute('y2', '100%');
+    
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%');
+    stop1.setAttribute('style', 'stop-color:rgba(0,255,136,0.8);stop-opacity:1');
+    
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%');
+    stop2.setAttribute('style', 'stop-color:rgba(0,255,136,0.3);stop-opacity:1');
+    
+    gradient.appendChild(stop1);
+    gradient.appendChild(stop2);
+    defs.appendChild(gradient);
+    svg.insertBefore(defs, svg.firstChild);
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initDemandChart();
+      updateLiveData();
+      setInterval(updateLiveData, 5000); // Update every 5 seconds
+    });
+
+    function selectRegion(region) {
+      // Remove selected class from all cards
+      document.querySelectorAll('.forecast-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked card
+      const card = document.querySelector(`.forecast-card[data-region="${region}"]`);
+      if (card) {
+        card.classList.add('selected');
+      }
+      
+      // Highlight region on map
+      document.querySelectorAll('.map-region').forEach(marker => {
+        marker.style.zIndex = '1';
+      });
+      const marker = document.querySelector(`.map-region[data-region="${region}"]`);
+      if (marker) {
+        marker.style.zIndex = '10';
+      }
+    }
+
+    function updateLiveData() {
+      // Simulate real-time data updates
+      const accuracy = (92 + Math.random() * 4).toFixed(1);
+      document.getElementById('modelAccuracy').textContent = accuracy + '%';
+      
+      // Update timestamp
+      const now = new Date();
+      document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+    }
+
+    function initDemandChart() {
+      const ctx = document.getElementById('demandChart').getContext('2d');
+      const months = ['Nov 2025', 'Dec 2025', 'Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026'];
+      
+      const regions = {
+        nairobi: [920, 945, 980, 1010, 1055, 1090],
+        mombasa: [640, 655, 670, 690, 710, 725],
+        kisumu: [410, 425, 445, 460, 480, 495],
+        nakuru: [280, 275, 285, 290, 295, 300],
+        eldoret: [265, 275, 285, 295, 310, 320]
+      };
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [
+            {
+              label: 'Nairobi',
+              data: regions.nairobi,
+              borderColor: 'rgba(0,255,136,1)',
+              backgroundColor: 'rgba(0,255,136,0.1)',
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Mombasa',
+              data: regions.mombasa,
+              borderColor: 'rgba(0,200,255,1)',
+              backgroundColor: 'rgba(0,200,255,0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Kisumu',
+              data: regions.kisumu,
+              borderColor: 'rgba(255,200,0,1)',
+              backgroundColor: 'rgba(255,200,0,0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Nakuru',
+              data: regions.nakuru,
+              borderColor: 'rgba(255,107,107,1)',
+              backgroundColor: 'rgba(255,107,107,0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Eldoret',
+              data: regions.eldoret,
+              borderColor: 'rgba(200,0,255,1)',
+              backgroundColor: 'rgba(200,0,255,0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: '#999',
+                font: { size: 12 },
+                usePointStyle: true,
+                padding: 15
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              titleColor: '#00ff88',
+              bodyColor: '#fff',
+              borderColor: '#00ff88',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.parsed.y + ' tons';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#999' }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { 
+                color: '#999',
+                callback: (value) => value + ' tons'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Add click handlers to map regions
+    document.querySelectorAll('.map-region').forEach(region => {
+      region.addEventListener('click', function() {
+        const regionName = this.dataset.region;
+        selectRegion(regionName);
+      });
+    });
+  </script>
+</body>
+</html>

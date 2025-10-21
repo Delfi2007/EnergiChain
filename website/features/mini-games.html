@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Energy Education Mini-Games — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .game-container {
+      max-width: 800px;
+      margin: 2rem auto;
+    }
+    
+    .progress-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 15px;
+      border: 1px solid #333;
+    }
+    
+    .progress-bar-container {
+      flex: 1;
+      height: 12px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #00c8ff);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+      box-shadow: 0 0 15px var(--accent);
+    }
+    
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #ff6600, #ffaa00);
+      border-radius: 20px;
+      font-weight: 700;
+      color: #000;
+      white-space: nowrap;
+    }
+    
+    .game-card {
+      background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(20,20,20,0.4) 100%);
+      border: 2px solid #333;
+      border-radius: 20px;
+      padding: 3rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .game-card.show {
+      animation: slideIn 0.5s ease;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .question-number {
+      font-size: 0.9rem;
+      color: #999;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    
+    .question-text {
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 2rem;
+      color: #fff;
+    }
+    
+    .question-image {
+      width: 100%;
+      max-width: 400px;
+      height: 250px;
+      margin: 2rem auto;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8rem;
+      background: rgba(0,0,0,0.3);
+      border: 2px dashed #333;
+    }
+    
+    .answers-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .answer-btn {
+      padding: 1.5rem;
+      background: rgba(0,0,0,0.3);
+      border: 3px solid #333;
+      border-radius: 12px;
+      text-align: left;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .answer-btn:hover {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.05);
+      transform: translateX(5px);
+    }
+    
+    .answer-btn.selected {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.1);
+    }
+    
+    .answer-btn.correct {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.2);
+      animation: correctPulse 0.5s ease;
+    }
+    
+    .answer-btn.wrong {
+      border-color: #ff4444;
+      background: rgba(255,68,68,0.2);
+      animation: shake 0.5s ease;
+    }
+    
+    @keyframes correctPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    
+    .answer-btn::before {
+      content: '';
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      border: 3px solid #666;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .answer-btn.selected::before {
+      border-color: var(--accent);
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+    
+    .answer-btn span {
+      margin-left: 2.5rem;
+      display: block;
+    }
+    
+    .feedback-panel {
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: none;
+      animation: slideDown 0.3s ease;
+    }
+    
+    .feedback-panel.show {
+      display: block;
+    }
+    
+    .feedback-panel.correct {
+      background: rgba(0,255,136,0.1);
+      border: 2px solid var(--accent);
+    }
+    
+    .feedback-panel.wrong {
+      background: rgba(255,68,68,0.1);
+      border: 2px solid #ff4444;
+    }
+    
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .feedback-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .check-btn {
+      padding: 1.25rem 3rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .check-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0,255,136,0.4);
+    }
+    
+    .check-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .results-screen {
+      text-align: center;
+      padding: 3rem;
+    }
+    
+    .results-icon {
+      font-size: 8rem;
+      margin-bottom: 1rem;
+      animation: successPop 0.6s ease-out;
+    }
+    
+    @keyframes successPop {
+      0% { transform: scale(0) rotate(-180deg); }
+      50% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    
+    .results-score {
+      font-size: 4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #00c8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 1rem 0;
+    }
+    
+    .results-stars {
+      font-size: 3rem;
+      margin: 1.5rem 0;
+    }
+    
+    .xp-earned {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, #ffaa00, #ff6600);
+      border-radius: 20px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #000;
+      margin: 1.5rem 0;
+      animation: pulse 2s ease infinite;
+    }
+    
+    .lesson-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .lesson-card {
+      background: rgba(0,0,0,0.3);
+      border: 2px solid #333;
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .lesson-card:hover {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.05);
+      transform: translateY(-5px);
+    }
+    
+    .lesson-card.completed {
+      border-color: var(--accent);
+    }
+    
+    .lesson-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    
+    .lesson-progress {
+      width: 100%;
+      height: 6px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 3px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    
+    .lesson-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    
+    .completed-badge {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--accent);
+      color: #000;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <div class="brand">EnergiChain</div>
+      <span style="font-size:0.9rem;color:#666">|</span>
+      <span style="font-size:0.9rem;color:#999">Energy Education</span>
+    </div>
+    <nav>
+      <a href="index.html" style="display:flex;align-items:center;gap:0.5rem">
+        ← Dashboard
+      </a>
+    </nav>
+  </header>
+  
+  <main style="padding:2rem;max-width:1400px;margin:0 auto">
+    <!-- Lesson Selection Screen -->
+    <div id="lessonSelect">
+      <div style="text-align:center;margin-bottom:3rem">
+        <h1 style="font-size:2.5rem;margin-bottom:1rem;background:linear-gradient(135deg,var(--accent),#00c8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+          🎮 Energy Education Mini-Games
+        </h1>
+        <p style="font-size:1.1rem;color:#999;line-height:1.6">
+          Learn LPG safety and environmental benefits through fun, Duolingo-style lessons!
+        </p>
+      </div>
+
+      <!-- User Stats -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:3rem">
+        <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+          <div style="font-size:2rem;font-weight:700;color:var(--accent)" id="totalXP">1,240 XP</div>
+          <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Total Experience</div>
+        </div>
+        <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+          <div style="font-size:2rem;font-weight:700;color:#ffaa00" id="streakDays">12 🔥</div>
+          <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Day Streak</div>
+        </div>
+        <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+          <div style="font-size:2rem;font-weight:700;color:var(--accent)" id="lessonsCompleted">8/15</div>
+          <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Lessons Completed</div>
+        </div>
+        <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+          <div style="font-size:2rem;font-weight:700;color:var(--accent)">Level 5</div>
+          <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Current Level</div>
+        </div>
+      </div>
+
+      <!-- Lessons -->
+      <h3 style="margin-bottom:1.5rem">📚 Choose a Lesson</h3>
+      <div class="lesson-grid">
+        <div class="lesson-card completed" onclick="startLesson('safety')">
+          <div class="completed-badge">✓</div>
+          <div class="lesson-icon">🛡️</div>
+          <h4 style="font-size:1.2rem;margin-bottom:0.5rem">LPG Safety Basics</h4>
+          <div style="font-size:0.85rem;color:#999">5 questions • 100 XP</div>
+          <div class="lesson-progress">
+            <div class="lesson-progress-fill" style="width:100%"></div>
+          </div>
+        </div>
+
+        <div class="lesson-card" onclick="startLesson('environment')">
+          <div class="lesson-icon">🌍</div>
+          <h4 style="font-size:1.2rem;margin-bottom:0.5rem">Environmental Benefits</h4>
+          <div style="font-size:0.85rem;color:#999">5 questions • 100 XP</div>
+          <div class="lesson-progress">
+            <div class="lesson-progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="lesson-card completed" onclick="startLesson('storage')">
+          <div class="completed-badge">✓</div>
+          <div class="lesson-icon">📦</div>
+          <h4 style="font-size:1.2rem;margin-bottom:0.5rem">Proper Storage</h4>
+          <div style="font-size:0.85rem;color:#999">5 questions • 100 XP</div>
+          <div class="lesson-progress">
+            <div class="lesson-progress-fill" style="width:100%"></div>
+          </div>
+        </div>
+
+        <div class="lesson-card" onclick="startLesson('leak')">
+          <div class="lesson-icon">💨</div>
+          <h4 style="font-size:1.2rem;margin-bottom:0.5rem">Leak Detection</h4>
+          <div style="font-size:0.85rem;color:#999">5 questions • 100 XP</div>
+          <div class="lesson-progress">
+            <div class="lesson-progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="lesson-card completed" onclick="startLesson('emergency')">
+          <div class="completed-badge">✓</div>
+          <div class="lesson-icon">🚨</div>
+          <h4 style="font-size:1.2rem;margin-bottom:0.5rem">Emergency Response</h4>
+          <div style="font-size:0.85rem;color:#999">5 questions • 100 XP</div>
+          <div class="lesson-progress">
+            <div class="lesson-progress-fill" style="width:100%"></div>
+          </div>
+        </div>
+
+        <div class="lesson-card" onclick="startLesson('carbon')">
+          <div class="lesson-icon">🌱</div>
+          <h4 style="font-size:1.2rem;margin-bottom:0.5rem">Carbon Footprint</h4>
+          <div style="font-size:0.85rem;color:#999">5 questions • 100 XP</div>
+          <div class="lesson-progress">
+            <div class="lesson-progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" style="display:none">
+      <div class="game-container">
+        <!-- Progress Header -->
+        <div class="progress-header">
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+          </div>
+          <div class="streak-badge">
+            <span>🔥</span>
+            <span id="headerStreak">12 Day Streak</span>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="game-card show" id="questionCard">
+          <div class="question-number" id="questionNumber">Question 1 of 5</div>
+          <div class="question-text" id="questionText"></div>
+          <div class="question-image" id="questionImage" style="display:none"></div>
+          
+          <div class="answers-grid" id="answersGrid"></div>
+          
+          <div class="feedback-panel" id="feedbackPanel">
+            <div class="feedback-title" id="feedbackTitle"></div>
+            <div id="feedbackText" style="color:#ccc;margin-top:0.5rem"></div>
+          </div>
+          
+          <button class="check-btn" id="checkBtn" onclick="checkAnswer()" disabled>
+            CHECK ANSWER
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="resultsScreen" style="display:none">
+      <div class="game-container">
+        <div class="game-card">
+          <div class="results-screen">
+            <div class="results-icon" id="resultsIcon">🏆</div>
+            <h2 style="font-size:2.5rem;margin-bottom:1rem">Lesson Complete!</h2>
+            <div class="results-score" id="resultsScore">5/5</div>
+            <div style="font-size:1.2rem;color:#999;margin-bottom:1rem">Perfect Score!</div>
+            <div class="results-stars" id="resultsStars">⭐⭐⭐</div>
+            <div class="xp-earned" id="xpEarned">+100 XP</div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:3rem">
+              <button onclick="backToLessons()" style="padding:1.25rem;font-size:1.1rem">
+                📚 Back to Lessons
+              </button>
+              <button onclick="retryLesson()" style="padding:1.25rem;font-size:1.1rem;background:var(--accent);color:#000">
+                🔄 Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    const lessons = {
+      environment: {
+        title: 'Environmental Benefits',
+        icon: '🌍',
+        questions: [
+          {
+            question: 'How much CO₂ does LPG produce compared to charcoal?',
+            image: '🌱',
+            answers: [
+              { text: '50% more emissions', correct: false },
+              { text: '60% less emissions', correct: true },
+              { text: 'Same amount of emissions', correct: false },
+              { text: 'Double the emissions', correct: false }
+            ],
+            explanation: 'LPG produces 60% less CO₂ emissions than charcoal, making it much better for the environment!'
+          },
+          {
+            question: 'What happens when you switch from charcoal to LPG?',
+            image: '🌳',
+            answers: [
+              { text: 'You save trees from being cut down', correct: true },
+              { text: 'You use more energy', correct: false },
+              { text: 'You create more smoke', correct: false },
+              { text: 'Cooking takes longer', correct: false }
+            ],
+            explanation: 'By using LPG instead of charcoal, you help prevent deforestation and save countless trees!'
+          },
+          {
+            question: 'How does LPG help indoor air quality?',
+            image: '🏠',
+            answers: [
+              { text: 'Creates more smoke', correct: false },
+              { text: 'No difference', correct: false },
+              { text: 'Burns clean with no smoke', correct: true },
+              { text: 'Adds fragrance to air', correct: false }
+            ],
+            explanation: 'LPG burns cleanly without producing smoke, protecting your family from indoor air pollution!'
+          },
+          {
+            question: 'How many trees can one family save per year by using LPG?',
+            image: '🌲',
+            answers: [
+              { text: '2-3 trees', correct: false },
+              { text: '5-7 trees', correct: false },
+              { text: '12-15 trees', correct: true },
+              { text: '1 tree', correct: false }
+            ],
+            explanation: 'An average family can save 12-15 trees per year by switching from charcoal to LPG!'
+          },
+          {
+            question: 'What is the main benefit of LPG for the planet?',
+            image: '🌍',
+            answers: [
+              { text: 'Cheaper than all alternatives', correct: false },
+              { text: 'Cleaner burning, less pollution', correct: true },
+              { text: 'Unlimited supply', correct: false },
+              { text: 'No need for cylinders', correct: false }
+            ],
+            explanation: 'LPG is one of the cleanest burning fuels, significantly reducing air pollution and carbon emissions!'
+          }
+        ]
+      },
+      leak: {
+        title: 'Leak Detection',
+        icon: '💨',
+        questions: [
+          {
+            question: 'How can you detect an LPG leak?',
+            image: '👃',
+            answers: [
+              { text: 'Only by looking at it', correct: false },
+              { text: 'By the distinctive smell added to LPG', correct: true },
+              { text: 'You cannot detect leaks', correct: false },
+              { text: 'By tasting the air', correct: false }
+            ],
+            explanation: 'LPG has a distinctive smell (like rotten eggs) added specifically so you can detect leaks easily!'
+          },
+          {
+            question: 'What should you do FIRST if you smell gas?',
+            image: '🚪',
+            answers: [
+              { text: 'Turn on lights to see better', correct: false },
+              { text: 'Open windows and doors immediately', correct: true },
+              { text: 'Use your phone to call someone', correct: false },
+              { text: 'Light a match to find the leak', correct: false }
+            ],
+            explanation: 'Open all windows and doors immediately to ventilate the area and disperse the gas!'
+          },
+          {
+            question: 'What should you NEVER do if you suspect a gas leak?',
+            image: '⚡',
+            answers: [
+              { text: 'Open windows', correct: false },
+              { text: 'Turn off the gas valve', correct: false },
+              { text: 'Use electrical switches or create sparks', correct: true },
+              { text: 'Leave the building', correct: false }
+            ],
+            explanation: 'Never use electrical switches, lighters, or create any sparks as they could ignite the gas!'
+          },
+          {
+            question: 'How can you check for leaks with soapy water?',
+            image: '🧼',
+            answers: [
+              { text: 'It makes bubbles where gas is leaking', correct: true },
+              { text: 'It changes color', correct: false },
+              { text: 'It freezes the gas', correct: false },
+              { text: 'It has no effect', correct: false }
+            ],
+            explanation: 'Apply soapy water to connections - bubbles will form where gas is escaping, making leaks easy to spot!'
+          },
+          {
+            question: 'After fixing a leak, what should you do?',
+            image: '✅',
+            answers: [
+              { text: 'Use it immediately', correct: false },
+              { text: 'Test with soapy water and ventilate', correct: true },
+              { text: 'Nothing, just continue', correct: false },
+              { text: 'Seal it with tape', correct: false }
+            ],
+            explanation: 'Always test the repair with soapy water and ensure proper ventilation before using the cylinder again!'
+          }
+        ]
+      },
+      carbon: {
+        title: 'Carbon Footprint',
+        icon: '🌱',
+        questions: [
+          {
+            question: 'What is a carbon footprint?',
+            image: '👣',
+            answers: [
+              { text: 'The mark your shoe leaves', correct: false },
+              { text: 'Total greenhouse gases you produce', correct: true },
+              { text: 'Amount of charcoal you use', correct: false },
+              { text: 'Size of your stove', correct: false }
+            ],
+            explanation: 'Your carbon footprint is the total amount of greenhouse gases (like CO₂) that your activities produce!'
+          },
+          {
+            question: 'Which fuel has the SMALLEST carbon footprint?',
+            image: '⚖️',
+            answers: [
+              { text: 'Charcoal', correct: false },
+              { text: 'Kerosene', correct: false },
+              { text: 'LPG', correct: true },
+              { text: 'Firewood', correct: false }
+            ],
+            explanation: 'LPG has the smallest carbon footprint among common cooking fuels, making it the greenest choice!'
+          },
+          {
+            question: 'How much can one household reduce CO₂ by switching to LPG?',
+            image: '📉',
+            answers: [
+              { text: '100kg per year', correct: false },
+              { text: '300kg per year', correct: false },
+              { text: '800kg per year', correct: true },
+              { text: 'No reduction', correct: false }
+            ],
+            explanation: 'An average household can reduce CO₂ emissions by 800kg per year by switching from charcoal to LPG!'
+          },
+          {
+            question: 'What is "clean cooking"?',
+            image: '🍳',
+            answers: [
+              { text: 'Washing dishes after cooking', correct: false },
+              { text: 'Using fuels that produce minimal pollution', correct: true },
+              { text: 'Cooking with clean water', correct: false },
+              { text: 'Cleaning your kitchen daily', correct: false }
+            ],
+            explanation: 'Clean cooking means using fuels like LPG that produce minimal smoke and air pollution!'
+          },
+          {
+            question: 'Why should we care about reducing our carbon footprint?',
+            image: '🌍',
+            answers: [
+              { text: 'It saves money only', correct: false },
+              { text: 'It protects the planet for future generations', correct: true },
+              { text: 'It makes cooking faster', correct: false },
+              { text: 'No real reason', correct: false }
+            ],
+            explanation: 'Reducing our carbon footprint helps fight climate change and protects the planet for our children and future generations!'
+          }
+        ]
+      }
+    };
+
+    let currentLesson = null;
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedAnswer = null;
+    let totalXP = 1240;
+    let streakDays = 12;
+
+    function startLesson(lessonType) {
+      currentLesson = lessons[lessonType];
+      currentQuestionIndex = 0;
+      score = 0;
+      selectedAnswer = null;
+      
+      document.getElementById('lessonSelect').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+      
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = currentLesson.questions[currentQuestionIndex];
+      const progress = ((currentQuestionIndex) / currentLesson.questions.length) * 100;
+      
+      document.getElementById('progressBar').style.width = progress + '%';
+      document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex + 1} of ${currentLesson.questions.length}`;
+      document.getElementById('questionText').textContent = question.question;
+      
+      // Show image if exists
+      const imgDiv = document.getElementById('questionImage');
+      if (question.image) {
+        imgDiv.textContent = question.image;
+        imgDiv.style.display = 'flex';
+      } else {
+        imgDiv.style.display = 'none';
+      }
+      
+      // Create answer buttons
+      const answersGrid = document.getElementById('answersGrid');
+      answersGrid.innerHTML = '';
+      
+      question.answers.forEach((answer, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn';
+        btn.innerHTML = `<span>${answer.text}</span>`;
+        btn.onclick = () => selectAnswer(index);
+        answersGrid.appendChild(btn);
+      });
+      
+      // Reset feedback and check button
+      document.getElementById('feedbackPanel').classList.remove('show', 'correct', 'wrong');
+      document.getElementById('checkBtn').disabled = true;
+      document.getElementById('checkBtn').textContent = 'CHECK ANSWER';
+      selectedAnswer = null;
+    }
+
+    function selectAnswer(index) {
+      if (selectedAnswer !== null) return; // Already checked
+      
+      const buttons = document.querySelectorAll('.answer-btn');
+      buttons.forEach(btn => btn.classList.remove('selected'));
+      buttons[index].classList.add('selected');
+      
+      selectedAnswer = index;
+      document.getElementById('checkBtn').disabled = false;
+    }
+
+    function checkAnswer() {
+      if (selectedAnswer === null) return;
+      
+      const question = currentLesson.questions[currentQuestionIndex];
+      const isCorrect = question.answers[selectedAnswer].correct;
+      
+      const buttons = document.querySelectorAll('.answer-btn');
+      const feedback = document.getElementById('feedbackPanel');
+      
+      if (isCorrect) {
+        score++;
+        buttons[selectedAnswer].classList.add('correct');
+        feedback.classList.add('show', 'correct');
+        document.getElementById('feedbackTitle').innerHTML = '✅ Correct!';
+      } else {
+        buttons[selectedAnswer].classList.add('wrong');
+        // Show correct answer
+        question.answers.forEach((answer, idx) => {
+          if (answer.correct) buttons[idx].classList.add('correct');
+        });
+        feedback.classList.add('show', 'wrong');
+        document.getElementById('feedbackTitle').innerHTML = '❌ Not quite!';
+      }
+      
+      document.getElementById('feedbackText').textContent = question.explanation;
+      document.getElementById('checkBtn').textContent = 'CONTINUE';
+      document.getElementById('checkBtn').onclick = nextQuestion;
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      
+      if (currentQuestionIndex < currentLesson.questions.length) {
+        document.getElementById('checkBtn').onclick = checkAnswer;
+        showQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('gameScreen').style.display = 'none';
+      document.getElementById('resultsScreen').style.display = 'block';
+      
+      const percentage = (score / currentLesson.questions.length) * 100;
+      let stars = '⭐';
+      let icon = '🎉';
+      let message = 'Good try!';
+      
+      if (percentage === 100) {
+        stars = '⭐⭐⭐';
+        icon = '🏆';
+        message = 'Perfect Score!';
+      } else if (percentage >= 80) {
+        stars = '⭐⭐';
+        icon = '🎊';
+        message = 'Great job!';
+      }
+      
+      const xpEarned = Math.floor((percentage / 100) * 100);
+      totalXP += xpEarned;
+      
+      document.getElementById('resultsIcon').textContent = icon;
+      document.getElementById('resultsScore').textContent = `${score}/${currentLesson.questions.length}`;
+      document.getElementById('resultsStars').textContent = stars;
+      document.getElementById('xpEarned').textContent = `+${xpEarned} XP`;
+      document.getElementById('totalXP').textContent = `${totalXP} XP`;
+    }
+
+    function backToLessons() {
+      document.getElementById('resultsScreen').style.display = 'none';
+      document.getElementById('lessonSelect').style.display = 'block';
+    }
+
+    function retryLesson() {
+      document.getElementById('resultsScreen').style.display = 'none';
+      startLesson(Object.keys(lessons).find(key => lessons[key] === currentLesson));
+    }
+  </script>
+</body>
+</html>

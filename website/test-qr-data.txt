@@ -1,0 +1,30 @@
+TEST QR CODE DATA FOR ENERGICHAIN
+=====================================
+
+Copy and paste this JSON into the "Manual Entry" section:
+
+{
+  "cylinderID": "CYL-7892341",
+  "size": "13kg",
+  "manufacturer": "Total Energies Kenya",
+  "safetyStatus": "Valid",
+  "lastInspection": "10/20/2025",
+  "nextService": "10/23/2025",
+  "totalRefills": 47,
+  "nftAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb8",
+  "blockchainTx": "0xf9a8d7c6b5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8"
+}
+
+OR use this simple cylinder ID:
+
+CYL-7892341
+
+=====================================
+
+INSTRUCTIONS:
+1. Click "Scan QR (Manual Entry)" button
+2. Paste the JSON above into the text field
+3. Click "Lookup Cylinder"
+4. You should see all the cylinder details displayed
+
+Alternatively, use the "Generate QR Code" section to create a new cylinder QR code!

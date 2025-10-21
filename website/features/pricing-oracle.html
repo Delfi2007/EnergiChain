@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Transparent Pricing Oracle — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">⚡ EnergiChain</div>
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="index.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <main class="feature-detail">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+      <div>
+        <h2>💰 Transparent Pricing Oracle</h2>
+        <p style="margin:0.5rem 0">Real-time immutable pricing with blockchain verification</p>
+      </div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        LIVE FEED
+      </div>
+    </div>
+
+    <div class="action-panel">
+      <h3>Current Pricing</h3>
+      <div class="action-buttons">
+        <button data-sim="pricing-oracle">Fetch Latest Price</button>
+      </div>
+      <div id="result" class="result-panel">Click to fetch current pricing data...</div>
+    </div>
+
+    <div class="action-panel" style="margin-top:2rem">
+      <h3>📈 Price Trends (Last 30 Days)</h3>
+      <div class="chart-container" style="height:350px">
+        <canvas id="priceChart"></canvas>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="margin-top:2rem">
+      <div class="stat-card">
+        <div class="stat-value metric-live">KES 78.50</div>
+        <div class="stat-label">Current Price/kg</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value metric-live">+2.3%</div>
+        <div class="stat-label">30-Day Change</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value metric-live">1,247</div>
+        <div class="stat-label">Oracle Updates Today</div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    const ctx = document.getElementById('priceChart');
+    if(ctx) {
+      const basePrice = 75;
+      const prices = Array.from({length:30}, ()=> basePrice + (Math.random()-0.5)*10);
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({length:30}, (_,i)=> `Day ${i+1}`),
+          datasets: [{
+            label: 'Price (KES/kg)',
+            data: prices,
+            borderColor: 'rgba(0,255,136,1)',
+            backgroundColor: 'rgba(0,255,136,0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {labels: {color: '#999', font: {size: 14}}},
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `KES ${ctx.parsed.y.toFixed(2)}/kg`
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {color: '#999', callback: (val) => `KES ${val}`},
+              grid: {color: 'rgba(255,255,255,0.1)'}
+            },
+            x: {
+              ticks: {color: '#999', maxRotation: 45, minRotation: 45},
+              grid: {color: 'rgba(255,255,255,0.1)'}
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

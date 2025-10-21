@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Circular Economy Module — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .economy-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .deposit-card {
+      background: linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,200,255,0.1) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .deposit-amount {
+      font-size: 4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #00c8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 1rem 0;
+    }
+    
+    .cylinder-visual {
+      width: 150px;
+      height: 200px;
+      margin: 2rem auto;
+      position: relative;
+    }
+    
+    .cylinder-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 20px var(--accent));
+    }
+    
+    .return-flow {
+      display: grid;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .flow-step {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .flow-step.active {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.05);
+    }
+    
+    .flow-step.completed {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.1);
+    }
+    
+    .step-number {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(0,255,136,0.2);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    
+    .flow-step.completed .step-number {
+      background: var(--accent);
+      color: #000;
+    }
+    
+    .scanner-window {
+      background: #000;
+      border-radius: 15px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 4/3;
+      border: 2px solid var(--accent);
+    }
+    
+    #qr-reader {
+      width: 100%;
+    }
+    
+    .refund-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .refund-modal.show {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .refund-card {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      border: 3px solid var(--accent);
+      border-radius: 25px;
+      padding: 3rem;
+      max-width: 600px;
+      text-align: center;
+      position: relative;
+      animation: slideUp 0.5s ease-out;
+    }
+    
+    .close-modal-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid #666;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    .close-modal-btn:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: var(--accent);
+      transform: rotate(90deg);
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .success-icon {
+      font-size: 6rem;
+      animation: successPop 0.6s ease-out;
+    }
+    
+    @keyframes successPop {
+      0% { transform: scale(0) rotate(-180deg); }
+      50% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      animation: confettiFall 3s ease-out infinite;
+    }
+    
+    @keyframes confettiFall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+    }
+    
+    .transaction-hash {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #666;
+      background: rgba(0,0,0,0.5);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      word-break: break-all;
+    }
+    
+    .cylinder-history {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      border-left: 4px solid var(--accent);
+    }
+    
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .status-badge.returned {
+      background: var(--accent);
+      color: #000;
+    }
+    
+    .status-badge.pending {
+      background: #ffaa00;
+      color: #000;
+    }
+    
+    .qr-manual-input {
+      display: none;
+      margin-top: 1rem;
+    }
+    
+    .qr-manual-input.show {
+      display: block;
+    }
+    
+    @media (max-width: 768px) {
+      .economy-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <div class="brand">EnergiChain</div>
+      <span style="font-size:0.9rem;color:#666">|</span>
+      <span style="font-size:0.9rem;color:#999">Circular Economy</span>
+    </div>
+    <nav>
+      <a href="index.html" style="display:flex;align-items:center;gap:0.5rem">
+        ← Dashboard
+      </a>
+    </nav>
+  </header>
+  
+  <main style="padding:2rem;max-width:1400px;margin:0 auto">
+    <!-- Refund Success Modal -->
+    <div class="refund-modal" id="refundModal">
+      <div class="refund-card">
+        <button class="close-modal-btn" onclick="closeRefundModal()" title="Close (ESC)">✕</button>
+        <div class="success-icon">✅</div>
+        <h2 style="font-size:2rem;margin:1rem 0;color:var(--accent)">Refund Successful!</h2>
+        <div style="font-size:1.5rem;font-weight:700;margin:1rem 0" id="refundAmount">KES 500</div>
+        <div style="color:#999;margin-bottom:2rem">Deposit refunded to your wallet</div>
+        
+        <div style="display:grid;gap:0.75rem;text-align:left;background:rgba(0,0,0,0.3);padding:1.5rem;border-radius:12px;margin-bottom:1.5rem">
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#999">Cylinder ID:</span>
+            <strong id="modalCylinderId">CYL-7892341</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#999">Deposit Paid:</span>
+            <strong id="modalDepositDate">Oct 15, 2025</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#999">Days Used:</span>
+            <strong id="modalDaysUsed">6 days</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#999">Condition:</span>
+            <strong style="color:var(--accent)">Excellent</strong>
+          </div>
+        </div>
+        
+        <div class="transaction-hash" id="modalTxHash">
+          TX: 0x7f3e9d2a1c8b5f4e3a7d9c2b1e8f7a5d3c9b2e1f8a7d5c3e9b1f7a5d3c9b2e1f
+        </div>
+        
+        <button onclick="closeRefundModal()" style="margin-top:2rem;padding:1rem 3rem;font-size:1.1rem">
+          ✓ Done
+        </button>
+      </div>
+    </div>
+
+    <!-- Header Section -->
+    <div style="text-align:center;margin-bottom:3rem">
+      <h1 style="font-size:2.5rem;margin-bottom:1rem;background:linear-gradient(135deg,var(--accent),#00c8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        ♻️ Circular Economy Module
+      </h1>
+      <p style="font-size:1.1rem;color:#999;line-height:1.6">
+        Blockchain-tracked cylinder deposits with instant QR refunds
+      </p>
+    </div>
+
+    <!-- What is This? Explanation -->
+    <div class="action-panel" style="margin-bottom:2rem;background:rgba(0,255,136,0.05)">
+      <h3>💡 How It Works</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;margin-top:1.5rem">
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:0.5rem">1️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Pay Deposit</div>
+          <div style="font-size:0.9rem;color:#999">When you get a cylinder, you pay KES 500 deposit (tracked on blockchain)</div>
+        </div>
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:0.5rem">2️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Use Cylinder</div>
+          <div style="font-size:0.9rem;color:#999">Use the LPG as normal. The cylinder belongs to the shared pool</div>
+        </div>
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:0.5rem">3️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Return & Scan</div>
+          <div style="font-size:0.9rem;color:#999">Bring empty cylinder back, scan QR code to verify</div>
+        </div>
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:0.5rem">4️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Instant Refund</div>
+          <div style="font-size:0.9rem;color:#999">Get your KES 500 back instantly via blockchain transaction</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem">
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">94.2%</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Return Rate</div>
+      </div>
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)" id="totalReturns">8,347</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Cylinders Returned</div>
+      </div>
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">< 30s</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Avg Refund Time</div>
+      </div>
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)" id="yourDeposits">3</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Your Active Deposits</div>
+      </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div class="economy-container">
+      <!-- Deposit Info & Return Process -->
+      <div>
+        <div class="deposit-card">
+          <div style="font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:1rem">
+            💰 Standard Deposit Amount
+          </div>
+          <div class="deposit-amount">KES 500</div>
+          <div style="color:#999;margin-bottom:2rem">Per cylinder • Fully refundable</div>
+          
+          <div class="cylinder-visual">
+            <svg class="cylinder-svg" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="cylinderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00ff88;stop-opacity:0.3" />
+                  <stop offset="100%" style="stop-color:#00c864;stop-opacity:0.6" />
+                </linearGradient>
+              </defs>
+              
+              <!-- Cylinder body -->
+              <ellipse cx="50" cy="20" rx="35" ry="8" fill="#00ff88" opacity="0.3"/>
+              <rect x="15" y="20" width="70" height="110" fill="url(#cylinderGrad)"/>
+              <ellipse cx="50" cy="130" rx="35" ry="8" fill="#00c864"/>
+              
+              <!-- Valve -->
+              <rect x="45" y="10" width="10" height="10" fill="#00ff88" rx="2"/>
+              
+              <!-- Return arrow -->
+              <path d="M 75 75 L 90 75 L 82 85 M 90 75 L 82 65" stroke="#00ff88" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          
+          <div style="font-size:0.9rem;color:#ccc;line-height:1.6">
+            ✓ Blockchain verified<br>
+            ✓ Instant refund processing<br>
+            ✓ No paperwork required
+          </div>
+        </div>
+
+        <!-- Return Flow Steps -->
+        <div class="action-panel" style="margin-top:2rem">
+          <h3>📋 Return Process</h3>
+          <div class="return-flow">
+            <div class="flow-step" id="step1">
+              <div class="step-number">1</div>
+              <div style="flex:1">
+                <div style="font-weight:700;margin-bottom:0.25rem">Bring Empty Cylinder</div>
+                <div style="font-size:0.85rem;color:#999">Return to any EnergiChain partner location</div>
+              </div>
+            </div>
+            
+            <div class="flow-step" id="step2">
+              <div class="step-number">2</div>
+              <div style="flex:1">
+                <div style="font-weight:700;margin-bottom:0.25rem">Scan QR Code</div>
+                <div style="font-size:0.85rem;color:#999">Verify cylinder ID using camera or manual entry</div>
+              </div>
+            </div>
+            
+            <div class="flow-step" id="step3">
+              <div class="step-number">3</div>
+              <div style="flex:1">
+                <div style="font-weight:700;margin-bottom:0.25rem">Condition Check</div>
+                <div style="font-size:0.85rem;color:#999">AI verifies cylinder is in good condition</div>
+              </div>
+            </div>
+            
+            <div class="flow-step" id="step4">
+              <div class="step-number">4</div>
+              <div style="flex:1">
+                <div style="font-weight:700;margin-bottom:0.25rem">Instant Refund</div>
+                <div style="font-size:0.85rem;color:#999">KES 500 deposited to your wallet via blockchain</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scanner & Active Deposits -->
+      <div>
+        <!-- QR Scanner -->
+        <div class="action-panel">
+          <h3>📷 Scan Cylinder QR Code</h3>
+          <div class="scanner-window" style="margin-top:1rem">
+            <div id="qr-reader"></div>
+            <div id="scannerPlaceholder" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:1rem">
+              <div style="font-size:4rem">📷</div>
+              <div style="color:#999">Click button below to start scanning</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:1rem;margin-top:1rem">
+            <button onclick="startScanner()" id="startScanBtn" style="flex:1;padding:1rem">
+              📸 Start Scanner
+            </button>
+            <button onclick="stopScanner()" id="stopScanBtn" style="flex:1;padding:1rem;display:none">
+              ⏹️ Stop
+            </button>
+            <button onclick="toggleManualEntry()" style="flex:1;padding:1rem">
+              ⌨️ Manual Entry
+            </button>
+          </div>
+          
+          <div class="qr-manual-input" id="manualInput">
+            <input type="text" id="cylinderIdInput" placeholder="Enter Cylinder ID (e.g., CYL-7892341)" style="width:100%;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:8px;color:#fff;margin-bottom:1rem">
+            <button onclick="processManualReturn()" style="width:100%;padding:1rem">
+              ✓ Process Return
+            </button>
+          </div>
+        </div>
+
+        <!-- Your Active Deposits -->
+        <div class="action-panel" style="margin-top:2rem">
+          <h3>🔖 Your Active Deposits</h3>
+          <div class="cylinder-history" id="activeDeposits">
+            <div class="history-item">
+              <div>
+                <div style="font-weight:700">CYL-7892341</div>
+                <div style="font-size:0.85rem;color:#999">13kg • Deposited Oct 15, 2025</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">KES 500</div>
+                <span class="status-badge pending">ACTIVE</span>
+              </div>
+            </div>
+            
+            <div class="history-item">
+              <div>
+                <div style="font-weight:700">CYL-4521876</div>
+                <div style="font-size:0.85rem;color:#999">6kg • Deposited Oct 10, 2025</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">KES 500</div>
+                <span class="status-badge pending">ACTIVE</span>
+              </div>
+            </div>
+            
+            <div class="history-item">
+              <div>
+                <div style="font-weight:700">CYL-9876543</div>
+                <div style="font-size:0.85rem;color:#999">13kg • Deposited Oct 5, 2025</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">KES 500</div>
+                <span class="status-badge pending">ACTIVE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Return History -->
+        <div class="action-panel" style="margin-top:2rem">
+          <h3>📜 Recent Returns</h3>
+          <div class="cylinder-history">
+            <div class="history-item">
+              <div>
+                <div style="font-weight:700">CYL-1234567</div>
+                <div style="font-size:0.85rem;color:#999">Returned Oct 18, 2025</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">+KES 500</div>
+                <span class="status-badge returned">REFUNDED</span>
+              </div>
+            </div>
+            
+            <div class="history-item">
+              <div>
+                <div style="font-weight:700">CYL-8765432</div>
+                <div style="font-size:0.85rem;color:#999">Returned Oct 12, 2025</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">+KES 500</div>
+                <span class="status-badge returned">REFUNDED</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Impact Chart -->
+    <div class="action-panel" style="margin-top:2rem">
+      <h3>📊 Circular Economy Impact</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:1rem">
+        <div class="chart-container" style="height:300px">
+          <canvas id="returnChart"></canvas>
+        </div>
+        <div style="display:grid;gap:1rem;align-content:center">
+          <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border-radius:10px;border-left:4px solid var(--accent)">
+            <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Waste Prevented</div>
+            <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">127 tons</div>
+          </div>
+          <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border-radius:10px;border-left:4px solid var(--accent)">
+            <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Cylinders Reused</div>
+            <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">8,347 times</div>
+          </div>
+          <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border-radius:10px;border-left:4px solid var(--accent)">
+            <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Total Refunds Paid</div>
+            <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">KES 4.17M</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    let html5QrCode = null;
+    let totalReturns = 8347;
+    let activeDeposits = 3;
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      initReturnChart();
+    });
+
+    async function startScanner() {
+      document.getElementById('scannerPlaceholder').style.display = 'none';
+      document.getElementById('startScanBtn').style.display = 'none';
+      document.getElementById('stopScanBtn').style.display = 'inline-block';
+      
+      html5QrCode = new Html5Qrcode("qr-reader");
+      
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 250 },
+          (decodedText) => {
+            processCylinderReturn(decodedText);
+            stopScanner();
+          }
+        );
+      } catch (err) {
+        alert('Camera access denied. Please use Manual Entry option.');
+        stopScanner();
+      }
+    }
+
+    function stopScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop();
+        html5QrCode = null;
+      }
+      document.getElementById('scannerPlaceholder').style.display = 'flex';
+      document.getElementById('startScanBtn').style.display = 'inline-block';
+      document.getElementById('stopScanBtn').style.display = 'none';
+    }
+
+    function toggleManualEntry() {
+      const input = document.getElementById('manualInput');
+      input.classList.toggle('show');
+    }
+
+    function processManualReturn() {
+      const cylinderId = document.getElementById('cylinderIdInput').value.trim();
+      if (!cylinderId) {
+        alert('Please enter a cylinder ID');
+        return;
+      }
+      processCylinderReturn(cylinderId);
+    }
+
+    function processCylinderReturn(cylinderId) {
+      // Animate flow steps
+      document.getElementById('step1').classList.add('completed');
+      setTimeout(() => document.getElementById('step2').classList.add('completed'), 500);
+      setTimeout(() => document.getElementById('step3').classList.add('completed'), 1000);
+      setTimeout(() => {
+        document.getElementById('step4').classList.add('completed');
+        showRefundSuccess(cylinderId);
+      }, 1500);
+    }
+
+    function showRefundSuccess(cylinderId) {
+      // Update stats
+      totalReturns++;
+      activeDeposits--;
+      document.getElementById('totalReturns').textContent = totalReturns.toLocaleString();
+      document.getElementById('yourDeposits').textContent = activeDeposits;
+      
+      // Populate modal
+      document.getElementById('modalCylinderId').textContent = cylinderId;
+      document.getElementById('modalDepositDate').textContent = new Date(2025, 9, 15).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      document.getElementById('modalDaysUsed').textContent = Math.floor(Math.random() * 20 + 1) + ' days';
+      document.getElementById('modalTxHash').textContent = `TX: 0x${Math.random().toString(16).substring(2, 50)}...${Math.random().toString(16).substring(2, 10)}`;
+      
+      // Show modal
+      document.getElementById('refundModal').classList.add('show');
+      
+      // Update active deposits list
+      const firstItem = document.querySelector('#activeDeposits .history-item');
+      if (firstItem) {
+        firstItem.style.animation = 'fadeOut 0.5s ease';
+        setTimeout(() => {
+          firstItem.remove();
+        }, 500);
+      }
+      
+      // Reset flow after modal closes
+      setTimeout(() => {
+        document.querySelectorAll('.flow-step').forEach(step => {
+          step.classList.remove('completed');
+        });
+      }, 5000);
+    }
+
+    function closeRefundModal() {
+      document.getElementById('refundModal').classList.remove('show');
+    }
+    
+    // Close modal with ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeRefundModal();
+      }
+    });
+    
+    // Close modal when clicking outside
+    document.getElementById('refundModal').addEventListener('click', (e) => {
+      if (e.target.id === 'refundModal') {
+        closeRefundModal();
+      }
+    });
+
+    function initReturnChart() {
+      const ctx = document.getElementById('returnChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+          datasets: [{
+            label: 'Monthly Returns',
+            data: [620, 740, 810, 890, 920, 980, 1020, 1100, 1180, 1250],
+            borderColor: '#00ff88',
+            backgroundColor: 'rgba(0,255,136,0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255,255,255,0.1)' },
+              ticks: { color: '#999' }
+            },
+            x: {
+              grid: { color: 'rgba(255,255,255,0.1)' },
+              ticks: { color: '#999' }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

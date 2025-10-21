@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Carbon Credit Tokenization — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">EnergiChain</div>
+    <nav>
+      <a href="index.html">← Dashboard</a>
+    </nav>
+  </header>
+  
+  <main style="padding:2rem;max-width:1200px;margin:0 auto">
+    <div style="margin-bottom:2rem">
+      <h2 style="font-size:2.5rem;margin-bottom:0.5rem">🌱 Carbon Credit Tokenization</h2>
+      <p style="font-size:1.1rem;color:#999;line-height:1.6">
+        Earn tradeable ECO tokens every time you use LPG instead of charcoal or firewood. 
+        Each refill contributes to reducing carbon emissions and earns you rewards on the blockchain.
+      </p>
+    </div>
+
+    <!-- What is This Page? -->
+    <div class="action-panel" style="margin-bottom:2rem;background:linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,0,0,0.3) 100%);border:2px solid var(--accent)">
+      <h3 style="display:flex;align-items:center;gap:0.5rem">
+        <span>💡</span> What is Carbon Credit Tokenization?
+      </h3>
+      <div style="display:grid;gap:1.5rem;margin-top:1.5rem">
+        <div style="display:flex;gap:1rem">
+          <div style="font-size:2rem;line-height:1">🏆</div>
+          <div>
+            <div style="font-weight:600;color:var(--accent);margin-bottom:0.5rem">Earn While You Save the Planet</div>
+            <div style="color:#ccc">Every time you refill your LPG cylinder instead of buying charcoal, you prevent CO₂ emissions. We calculate the carbon offset and reward you with ECO tokens stored on the blockchain.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:1rem">
+          <div style="font-size:2rem;line-height:1">💰</div>
+          <div>
+            <div style="font-weight:600;color:var(--accent);margin-bottom:0.5rem">Trade or Redeem Your Tokens</div>
+            <div style="color:#ccc">ECO tokens have real monetary value. Trade them on the EnergiChain marketplace, use them for cylinder discounts, or cash out through M-Pesa. Your environmental impact becomes actual income.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:1rem">
+          <div style="font-size:2rem;line-height:1">🌍</div>
+          <div>
+            <div style="font-weight:600;color:var(--accent);margin-bottom:0.5rem">Verified & Transparent</div>
+            <div style="color:#ccc">All carbon calculations are verified by smart contracts and audited by certified carbon credit authorities. Every token earned is tracked on the Polygon blockchain for full transparency.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem">
+      <!-- Your Balance Card -->
+      <div class="action-panel">
+        <h3>💳 Your ECO Token Balance</h3>
+        <div style="text-align:center;padding:2rem">
+          <div style="font-size:0.9rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem">Total Balance</div>
+          <div id="tokenBalance" style="font-size:3.5rem;font-weight:800;color:var(--accent);line-height:1;margin-bottom:0.5rem">0</div>
+          <div style="font-size:1rem;color:#ccc;margin-bottom:2rem">ECO Tokens</div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;text-align:left">
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border:1px solid rgba(0,255,136,0.3)">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">Market Value</div>
+              <div id="marketValue" style="font-size:1.3rem;font-weight:700;color:#fff">KES 0</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,255,136,0.05);border-radius:8px;border:1px solid rgba(0,255,136,0.3)">
+              <div style="font-size:0.75rem;color:#999;margin-bottom:0.25rem">CO₂ Offset</div>
+              <div id="co2Offset" style="font-size:1.3rem;font-weight:700;color:#fff">0 kg</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Earning Calculator -->
+      <div class="action-panel">
+        <h3>🧮 Carbon Offset Calculator</h3>
+        <div style="padding:1rem">
+          <div style="margin-bottom:1.5rem">
+            <label style="display:block;margin-bottom:0.5rem;color:#ccc;font-size:0.9rem">LPG Refills This Month</label>
+            <input type="number" id="refillCount" value="4" min="1" max="20" style="width:100%;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff;font-size:1.2rem" oninput="calculateEarnings()">
+          </div>
+          
+          <div style="padding:1.5rem;background:rgba(0,255,136,0.05);border-radius:8px;border:1px solid rgba(0,255,136,0.3)">
+            <div style="font-size:0.85rem;color:#999;margin-bottom:1rem">Estimated Monthly Earnings</div>
+            <div style="display:grid;gap:0.75rem">
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:#ccc">ECO Tokens</span>
+                <strong id="calcTokens" style="color:var(--accent)">0 ECO</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:#ccc">Value (KES)</span>
+                <strong id="calcValue">KES 0</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:#ccc">CO₂ Prevented</span>
+                <strong id="calcCO2" style="color:#00ff88">0 kg</strong>
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-top:1rem;padding:1rem;background:rgba(0,0,0,0.3);border-radius:6px;font-size:0.85rem;color:#999">
+            💡 <strong>Note:</strong> Each 13kg LPG refill prevents ~12kg of CO₂ compared to charcoal, earning you ~15 ECO tokens worth approximately KES 12.75
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Panel -->
+    <div class="action-panel" style="margin-bottom:2rem">
+      <h3>⚡ Quick Actions</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem">
+        <button onclick="earnTokens()" style="padding:1.5rem;font-size:1rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem">
+          <span style="font-size:2rem">🎁</span>
+          <span>Record New Refill</span>
+        </button>
+        <button onclick="showTradeOptions()" style="padding:1.5rem;font-size:1rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem;background:rgba(0,255,136,0.1);border-color:var(--accent)">
+          <span style="font-size:2rem">💱</span>
+          <span>Trade Tokens</span>
+        </button>
+        <button onclick="redeemForDiscount()" style="padding:1.5rem;font-size:1rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem">
+          <span style="font-size:2rem">🎫</span>
+          <span>Redeem for Discount</span>
+        </button>
+        <button onclick="withdrawToMpesa()" style="padding:1.5rem;font-size:1rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem">
+          <span style="font-size:2rem">📱</span>
+          <span>Withdraw to M-Pesa</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Result Panel -->
+    <div id="result" class="action-panel" style="display:none">
+      <div id="resultContent"></div>
+    </div>
+
+    <!-- Token Price Chart -->
+    <div class="action-panel">
+      <h3>📈 ECO Token Price History (30 Days)</h3>
+      <div class="chart-container">
+        <canvas id="priceChart" class="chart-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="action-panel" style="margin-top:2rem">
+      <h3>📜 Recent Transactions</h3>
+      <div id="transactionHistory" style="margin-top:1rem">
+        <div style="text-align:center;padding:2rem;color:#999">
+          Record your first refill to start earning ECO tokens!
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    let totalBalance = 347; // Starting balance
+    let transactions = [];
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateBalanceDisplay();
+      calculateEarnings();
+      initPriceChart();
+      loadRecentTransactions();
+    });
+
+    function updateBalanceDisplay() {
+      document.getElementById('tokenBalance').textContent = totalBalance;
+      document.getElementById('marketValue').textContent = `KES ${(totalBalance * 0.85).toFixed(2)}`;
+      document.getElementById('co2Offset').textContent = `${(totalBalance * 2.3).toFixed(1)} kg`;
+      
+      // Animate number counting
+      animateValue('tokenBalance', 0, totalBalance, 1000);
+    }
+
+    function animateValue(id, start, end, duration) {
+      const element = document.getElementById(id);
+      const range = end - start;
+      const increment = range / (duration / 16);
+      let current = start;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+          current = end;
+          clearInterval(timer);
+        }
+        element.textContent = Math.floor(current);
+      }, 16);
+    }
+
+    function calculateEarnings() {
+      const refills = parseInt(document.getElementById('refillCount').value) || 0;
+      const tokensPerRefill = 15;
+      const tokens = refills * tokensPerRefill;
+      const value = (tokens * 0.85).toFixed(2);
+      const co2 = (refills * 12).toFixed(1);
+      
+      document.getElementById('calcTokens').textContent = `${tokens} ECO`;
+      document.getElementById('calcValue').textContent = `KES ${value}`;
+      document.getElementById('calcCO2').textContent = `${co2} kg`;
+    }
+
+    function earnTokens() {
+      const earned = Math.floor(Math.random() * 8 + 12); // 12-20 tokens
+      totalBalance += earned;
+      
+      const transaction = {
+        type: 'earn',
+        amount: earned,
+        date: new Date(),
+        co2: (earned / 15 * 12).toFixed(1),
+        txHash: '0x' + Array.from({length:64}, ()=>Math.floor(Math.random()*16).toString(16)).join('')
+      };
+      transactions.unshift(transaction);
+      
+      updateBalanceDisplay();
+      loadRecentTransactions();
+      showResult(`
+        <div style="text-align:center;padding:2rem">
+          <div style="font-size:3rem;margin-bottom:1rem">🎉</div>
+          <div style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:1rem">+${earned} ECO Tokens Earned!</div>
+          <div style="font-size:1rem;color:#ccc;margin-bottom:1.5rem">
+            CO₂ Offset: <strong>${transaction.co2} kg</strong> • 
+            Value: <strong>KES ${(earned * 0.85).toFixed(2)}</strong>
+          </div>
+          <div style="padding:1rem;background:rgba(0,0,0,0.3);border-radius:6px;margin-top:1rem">
+            <div style="font-size:0.85rem;color:#999;margin-bottom:0.5rem">Blockchain Transaction</div>
+            <div style="font-size:0.75rem;font-family:monospace;color:#666;word-break:break-all">${transaction.txHash}</div>
+          </div>
+          <div style="margin-top:1.5rem">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:0.5rem">New Total Balance</div>
+            <div style="font-size:2.5rem;font-weight:700;color:var(--accent)">${totalBalance} ECO</div>
+          </div>
+        </div>
+      `);
+    }
+
+    function showTradeOptions() {
+      showResult(`
+        <h3>💱 Trade ECO Tokens</h3>
+        <div style="margin-top:1.5rem">
+          <div style="padding:1.5rem;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.3);border-radius:8px;margin-bottom:1rem">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:1rem">Current Market Rate</div>
+            <div style="font-size:2rem;font-weight:700;color:var(--accent)">1 ECO = KES 0.85</div>
+            <div style="font-size:0.85rem;color:#666;margin-top:0.5rem">24h Change: <span style="color:#00ff88">+2.4%</span></div>
+          </div>
+          <div style="display:grid;gap:1rem">
+            <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border-radius:8px">
+              <div style="font-weight:600;margin-bottom:1rem">Available Balance: ${totalBalance} ECO</div>
+              <input type="number" placeholder="Amount to trade" style="width:100%;padding:1rem;background:rgba(0,0,0,0.5);border:1px solid var(--border);border-radius:6px;color:#fff;margin-bottom:1rem">
+              <button style="width:100%">Sell Tokens for KES</button>
+            </div>
+            <div style="padding:1rem;background:rgba(255,255,0,0.1);border:1px solid rgba(255,255,0,0.3);border-radius:6px;font-size:0.85rem">
+              ⚠️ Trading executed through EnergiChain DEX on Polygon zkEVM. 2% platform fee applies.
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function redeemForDiscount() {
+      if (totalBalance < 50) {
+        showResult(`
+          <div style="text-align:center;padding:2rem">
+            <div style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+            <div style="font-size:1.3rem;font-weight:700;margin-bottom:1rem">Insufficient Balance</div>
+            <div style="color:#ccc">You need at least 50 ECO tokens to redeem for a discount. Current balance: ${totalBalance} ECO</div>
+          </div>
+        `);
+        return;
+      }
+      
+      const redeemed = 50;
+      totalBalance -= redeemed;
+      updateBalanceDisplay();
+      
+      const discountCode = 'ECO-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      showResult(`
+        <div style="text-align:center;padding:2rem">
+          <div style="font-size:3rem;margin-bottom:1rem">🎫</div>
+          <div style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:1rem">Discount Code Generated!</div>
+          <div style="padding:2rem;background:rgba(0,255,136,0.1);border:2px dashed var(--accent);border-radius:8px;margin:1.5rem 0">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:0.5rem">Your Discount Code</div>
+            <div style="font-size:2rem;font-weight:700;color:var(--accent);font-family:monospace;letter-spacing:2px">${discountCode}</div>
+          </div>
+          <div style="color:#ccc;margin-bottom:1rem">
+            <strong>10% OFF</strong> your next cylinder refill<br>
+            Valid for 30 days
+          </div>
+          <div style="font-size:0.85rem;color:#999">
+            50 ECO tokens redeemed • Remaining balance: ${totalBalance} ECO
+          </div>
+        </div>
+      `);
+    }
+
+    function withdrawToMpesa() {
+      if (totalBalance < 100) {
+        showResult(`
+          <div style="text-align:center;padding:2rem">
+            <div style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+            <div style="font-size:1.3rem;font-weight:700;margin-bottom:1rem">Minimum Withdrawal Not Met</div>
+            <div style="color:#ccc">Minimum withdrawal is 100 ECO tokens. Current balance: ${totalBalance} ECO</div>
+          </div>
+        `);
+        return;
+      }
+      
+      showResult(`
+        <h3>📱 Withdraw to M-Pesa</h3>
+        <div style="margin-top:1.5rem">
+          <div style="padding:1.5rem;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.3);border-radius:8px;margin-bottom:1.5rem">
+            <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+              <span>Available Balance</span>
+              <strong style="color:var(--accent)">${totalBalance} ECO</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span>Withdrawal Value</span>
+              <strong>KES ${(totalBalance * 0.85).toFixed(2)}</strong>
+            </div>
+          </div>
+          <div style="display:grid;gap:1rem">
+            <input type="tel" placeholder="M-Pesa Number (e.g., 0712345678)" style="width:100%;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff">
+            <input type="number" placeholder="Amount (ECO tokens)" max="${totalBalance}" style="width:100%;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff">
+            <button style="width:100%">Request Withdrawal</button>
+          </div>
+          <div style="margin-top:1rem;padding:1rem;background:rgba(255,255,0,0.1);border:1px solid rgba(255,255,0,0.3);border-radius:6px;font-size:0.85rem">
+            💡 Withdrawals processed within 24 hours. 5% transaction fee applies.
+          </div>
+        </div>
+      `);
+    }
+
+    function showResult(html) {
+      document.getElementById('resultContent').innerHTML = html;
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function loadRecentTransactions() {
+      if (transactions.length === 0) return;
+      
+      const html = transactions.slice(0, 5).map(tx => `
+        <div style="padding:1rem;background:rgba(0,0,0,0.3);border-radius:8px;border-left:3px solid ${tx.type === 'earn' ? 'var(--accent)' : '#ff4444'};margin-bottom:0.75rem">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <div style="font-weight:600;color:${tx.type === 'earn' ? 'var(--accent)' : '#ff4444'}">
+                ${tx.type === 'earn' ? '+' : '-'}${tx.amount} ECO
+              </div>
+              <div style="font-size:0.85rem;color:#999;margin-top:0.25rem">
+                ${tx.date.toLocaleString()} • CO₂: ${tx.co2} kg
+              </div>
+            </div>
+            <div style="font-size:0.75rem;color:#666;font-family:monospace;max-width:150px;overflow:hidden;text-overflow:ellipsis">
+              ${tx.txHash.substring(0, 16)}...
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      document.getElementById('transactionHistory').innerHTML = html;
+    }
+
+    function initPriceChart() {
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      const days = 30;
+      const labels = [];
+      const prices = [];
+      let price = 0.80;
+      
+      for (let i = days; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        price += (Math.random() - 0.48) * 0.03;
+        price = Math.max(0.75, Math.min(0.95, price));
+        prices.push(price.toFixed(3));
+      }
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '1 ECO Token (KES)',
+            data: prices,
+            borderColor: 'rgba(0,255,136,1)',
+            backgroundColor: 'rgba(0,255,136,0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 0,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              titleColor: '#00ff88',
+              bodyColor: '#fff',
+              borderColor: '#00ff88',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { 
+                color: '#999',
+                maxRotation: 45,
+                minRotation: 45
+              }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { 
+                color: '#999',
+                callback: (value) => `KES ${value}`
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

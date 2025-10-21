@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Place Order & Payment — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .order-container {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    @media (max-width: 1024px) {
+      .order-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .product-card {
+      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(0,255,136,0.3);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .product-card:hover {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.05);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,255,136,0.2);
+    }
+    
+    .product-card.selected {
+      border: 3px solid var(--accent);
+      background: rgba(0,255,136,0.1);
+      box-shadow: 0 0 30px rgba(0,255,136,0.3);
+    }
+    
+    .product-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 30px;
+      height: 30px;
+      background: var(--accent);
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    
+    .cylinder-icon {
+      font-size: 4rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 10px var(--accent));
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #ccc;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(0,255,136,0.3);
+    }
+    
+    .order-summary {
+      position: sticky;
+      top: 2rem;
+      background: linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,0,0,0.5) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 2rem;
+      height: fit-content;
+    }
+    
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .summary-row.total {
+      border-bottom: none;
+      border-top: 2px solid var(--accent);
+      margin-top: 1rem;
+      padding-top: 1rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    
+    .payment-method {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .payment-option {
+      padding: 1rem;
+      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .payment-option:hover {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.05);
+    }
+    
+    .payment-option.selected {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.1);
+    }
+    
+    .payment-option img {
+      height: 40px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .eco-discount {
+      background: rgba(0,255,136,0.1);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .loading-overlay.active {
+      display: flex;
+    }
+    
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(0,255,136,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">EnergiChain</div>
+    <nav>
+      <a href="index.html">← Dashboard</a>
+    </nav>
+  </header>
+  
+  <main style="padding:2rem;max-width:1400px;margin:0 auto">
+    <div style="margin-bottom:2rem">
+      <h2 style="font-size:2.5rem;margin-bottom:0.5rem">🛒 Place Your Order</h2>
+      <p style="font-size:1.1rem;color:#999;line-height:1.6">
+        Order LPG cylinders with instant payment and real-time delivery tracking
+      </p>
+    </div>
+
+    <div class="order-container">
+      <!-- Left Column: Order Form -->
+      <div>
+        <!-- Step 1: Select Cylinder -->
+        <div class="action-panel" style="margin-bottom:2rem">
+          <h3>1️⃣ Select Cylinder Size</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1.5rem">
+            <div class="product-card" data-size="6kg" data-price="1200" onclick="selectProduct(this)">
+              <div class="cylinder-icon">🔥</div>
+              <div style="text-align:center">
+                <div style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:0.5rem">6 kg</div>
+                <div style="font-size:0.9rem;color:#999;margin-bottom:1rem">Small Cylinder</div>
+                <div style="font-size:1.3rem;font-weight:700">KES 1,200</div>
+                <div style="font-size:0.85rem;color:#666;margin-top:0.5rem">Ideal for 1-2 people</div>
+              </div>
+            </div>
+
+            <div class="product-card selected" data-size="13kg" data-price="2400" onclick="selectProduct(this)">
+              <div class="cylinder-icon">🔥</div>
+              <div style="text-align:center">
+                <div style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:0.5rem">13 kg</div>
+                <div style="font-size:0.9rem;color:#999;margin-bottom:1rem">Standard Cylinder</div>
+                <div style="font-size:1.3rem;font-weight:700">KES 2,400</div>
+                <div style="font-size:0.85rem;color:#666;margin-top:0.5rem">Perfect for families</div>
+              </div>
+            </div>
+
+            <div class="product-card" data-size="15kg" data-price="2700" onclick="selectProduct(this)">
+              <div class="cylinder-icon">🔥</div>
+              <div style="text-align:center">
+                <div style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:0.5rem">15 kg</div>
+                <div style="font-size:0.9rem;color:#999;margin-bottom:1rem">Large Cylinder</div>
+                <div style="font-size:1.3rem;font-weight:700">KES 2,700</div>
+                <div style="font-size:0.85rem;color:#666;margin-top:0.5rem">For large households</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Delivery Information -->
+        <div class="action-panel" style="margin-bottom:2rem">
+          <h3>2️⃣ Delivery Information</h3>
+          <div style="margin-top:1.5rem">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="customerName" placeholder="John Kamau" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Phone Number *</label>
+              <input type="tel" id="phoneNumber" placeholder="+254 712 345 678" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Delivery Address *</label>
+              <textarea id="deliveryAddress" rows="3" placeholder="Building name, Street, Area, Nairobi" required></textarea>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              <div class="form-group">
+                <label>Region *</label>
+                <select id="region" onchange="updateDeliveryFee()">
+                  <option value="nairobi-cbd">Nairobi CBD</option>
+                  <option value="nairobi-suburbs">Nairobi Suburbs</option>
+                  <option value="westlands">Westlands</option>
+                  <option value="kiambu">Kiambu</option>
+                  <option value="mombasa">Mombasa</option>
+                  <option value="kisumu">Kisumu</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Preferred Delivery Time</label>
+                <select id="deliveryTime">
+                  <option value="asap">As Soon As Possible</option>
+                  <option value="morning">Morning (8AM - 12PM)</option>
+                  <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                  <option value="evening">Evening (5PM - 8PM)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Special Instructions (Optional)</label>
+              <textarea id="specialInstructions" rows="2" placeholder="Gate code, apartment number, etc."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Apply Discount -->
+        <div class="action-panel" style="margin-bottom:2rem">
+          <h3>3️⃣ Discounts & Rewards</h3>
+          <div style="margin-top:1.5rem">
+            <div class="eco-discount">
+              <div style="font-size:2rem">🌱</div>
+              <div style="flex:1">
+                <div style="font-weight:600;margin-bottom:0.25rem">Use ECO Tokens</div>
+                <div style="font-size:0.85rem;color:#999">You have <strong style="color:var(--accent)">347 ECO</strong> tokens (≈ KES 295)</div>
+              </div>
+              <input type="checkbox" id="useEcoTokens" onchange="updateSummary()" style="width:24px;height:24px;cursor:pointer">
+            </div>
+            
+            <div class="form-group">
+              <label>Promo Code</label>
+              <div style="display:flex;gap:1rem">
+                <input type="text" id="promoCode" placeholder="Enter promo code" style="flex:1">
+                <button onclick="applyPromo()" style="padding:1rem 2rem;white-space:nowrap">Apply</button>
+              </div>
+              <div id="promoResult" style="margin-top:0.5rem;font-size:0.85rem"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary -->
+      <div>
+        <div class="order-summary">
+          <h3 style="margin-bottom:1.5rem;font-size:1.5rem">Order Summary</h3>
+          
+          <div class="summary-row">
+            <span style="color:#999">Cylinder (<span id="summarySize">13kg</span>)</span>
+            <strong id="summaryPrice">KES 2,400</strong>
+          </div>
+          
+          <div class="summary-row">
+            <span style="color:#999">Quantity</span>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <button onclick="changeQuantity(-1)" style="padding:0.5rem 0.75rem;font-size:1rem">-</button>
+              <span id="quantity" style="font-weight:700;min-width:30px;text-align:center">1</span>
+              <button onclick="changeQuantity(1)" style="padding:0.5rem 0.75rem;font-size:1rem">+</button>
+            </div>
+          </div>
+          
+          <div class="summary-row">
+            <span style="color:#999">Delivery Fee</span>
+            <strong id="deliveryFee">KES 200</strong>
+          </div>
+          
+          <div class="summary-row" id="discountRow" style="display:none;color:var(--accent)">
+            <span>ECO Token Discount</span>
+            <strong id="discountAmount">- KES 0</strong>
+          </div>
+          
+          <div class="summary-row" id="promoRow" style="display:none;color:var(--accent)">
+            <span>Promo Discount</span>
+            <strong id="promoAmount">- KES 0</strong>
+          </div>
+          
+          <div class="summary-row total">
+            <span>Total</span>
+            <span id="totalAmount">KES 2,600</span>
+          </div>
+          
+          <div style="margin-top:1.5rem;padding:1rem;background:rgba(0,0,0,0.3);border-radius:8px;font-size:0.85rem;color:#999">
+            <div>🌱 <strong style="color:var(--accent)">+15 ECO</strong> tokens with this order</div>
+            <div style="margin-top:0.5rem">📍 Estimated delivery: <strong>45-60 min</strong></div>
+          </div>
+          
+          <div style="margin-top:2rem">
+            <h4 style="margin-bottom:1rem">Payment Method</h4>
+            <div class="payment-method">
+              <div class="payment-option selected" data-method="mpesa" onclick="selectPayment(this)">
+                <div style="font-size:2rem;margin-bottom:0.5rem">📱</div>
+                <div style="font-weight:600">M-Pesa</div>
+              </div>
+              <div class="payment-option" data-method="card" onclick="selectPayment(this)">
+                <div style="font-size:2rem;margin-bottom:0.5rem">💳</div>
+                <div style="font-weight:600">Card</div>
+              </div>
+            </div>
+          </div>
+          
+          <button onclick="placeOrder()" style="width:100%;margin-top:2rem;padding:1.25rem;font-size:1.1rem;font-weight:700;background:var(--accent);color:#000;border:none">
+            🛒 Place Order & Pay
+          </button>
+          
+          <div style="margin-top:1rem;text-align:center;font-size:0.85rem;color:#666">
+            🔒 Secure payment powered by blockchain
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div style="text-align:center">
+      <div class="spinner"></div>
+      <div style="margin-top:1.5rem;font-size:1.2rem;color:var(--accent);font-weight:600">Processing your order...</div>
+    </div>
+  </div>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    let selectedSize = '13kg';
+    let selectedPrice = 2400;
+    let quantity = 1;
+    let deliveryFee = 200;
+    let ecoDiscount = 0;
+    let promoDiscount = 0;
+    let paymentMethod = 'mpesa';
+    
+    function selectProduct(element) {
+      // Remove selected class from all cards
+      document.querySelectorAll('.product-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked card
+      element.classList.add('selected');
+      
+      // Update selection
+      selectedSize = element.dataset.size;
+      selectedPrice = parseInt(element.dataset.price);
+      
+      updateSummary();
+    }
+    
+    function changeQuantity(delta) {
+      quantity = Math.max(1, Math.min(10, quantity + delta));
+      document.getElementById('quantity').textContent = quantity;
+      updateSummary();
+    }
+    
+    function updateDeliveryFee() {
+      const region = document.getElementById('region').value;
+      const fees = {
+        'nairobi-cbd': 150,
+        'nairobi-suburbs': 200,
+        'westlands': 200,
+        'kiambu': 300,
+        'mombasa': 500,
+        'kisumu': 500
+      };
+      deliveryFee = fees[region] || 200;
+      updateSummary();
+    }
+    
+    function updateSummary() {
+      document.getElementById('summarySize').textContent = selectedSize;
+      document.getElementById('summaryPrice').textContent = `KES ${selectedPrice.toLocaleString()}`;
+      document.getElementById('deliveryFee').textContent = `KES ${deliveryFee}`;
+      
+      // ECO Token discount
+      const useEco = document.getElementById('useEcoTokens').checked;
+      if (useEco) {
+        ecoDiscount = Math.min(295, selectedPrice * quantity * 0.1); // Max 10% or available tokens
+        document.getElementById('discountRow').style.display = 'flex';
+        document.getElementById('discountAmount').textContent = `- KES ${Math.floor(ecoDiscount)}`;
+      } else {
+        ecoDiscount = 0;
+        document.getElementById('discountRow').style.display = 'none';
+      }
+      
+      // Calculate total
+      const subtotal = (selectedPrice * quantity) + deliveryFee;
+      const total = subtotal - ecoDiscount - promoDiscount;
+      document.getElementById('totalAmount').textContent = `KES ${Math.max(0, total).toLocaleString()}`;
+    }
+    
+    function applyPromo() {
+      const code = document.getElementById('promoCode').value.trim().toUpperCase();
+      const result = document.getElementById('promoResult');
+      const promoRow = document.getElementById('promoRow');
+      
+      const promoCodes = {
+        'FIRST10': {discount: 0.1, type: 'percentage', message: '10% off applied!'},
+        'SAVE200': {discount: 200, type: 'fixed', message: 'KES 200 off applied!'},
+        'ECO-50': {discount: 50, type: 'fixed', message: 'KES 50 eco discount!'},
+        'WELCOME': {discount: 0.15, type: 'percentage', message: '15% welcome discount!'}
+      };
+      
+      if (promoCodes[code]) {
+        const promo = promoCodes[code];
+        if (promo.type === 'percentage') {
+          promoDiscount = Math.floor((selectedPrice * quantity) * promo.discount);
+        } else {
+          promoDiscount = promo.discount;
+        }
+        
+        result.style.color = 'var(--accent)';
+        result.textContent = '✓ ' + promo.message;
+        promoRow.style.display = 'flex';
+        document.getElementById('promoAmount').textContent = `- KES ${promoDiscount}`;
+        updateSummary();
+      } else if (code) {
+        result.style.color = '#ff6b6b';
+        result.textContent = '✗ Invalid promo code';
+        promoDiscount = 0;
+        promoRow.style.display = 'none';
+        updateSummary();
+      }
+    }
+    
+    function selectPayment(element) {
+      document.querySelectorAll('.payment-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      element.classList.add('selected');
+      paymentMethod = element.dataset.method;
+    }
+    
+    function placeOrder() {
+      // Validate form
+      const name = document.getElementById('customerName').value.trim();
+      const phone = document.getElementById('phoneNumber').value.trim();
+      const address = document.getElementById('deliveryAddress').value.trim();
+      
+      if (!name || !phone || !address) {
+        alert('⚠️ Please fill in all required fields (Name, Phone, Address)');
+        return;
+      }
+      
+      if (phone.length < 10) {
+        alert('⚠️ Please enter a valid phone number');
+        return;
+      }
+      
+      // Show loading
+      document.getElementById('loadingOverlay').classList.add('active');
+      
+      // Simulate order processing
+      setTimeout(() => {
+        processPayment();
+      }, 2000);
+    }
+    
+    function processPayment() {
+      const total = parseInt(document.getElementById('totalAmount').textContent.replace(/[^0-9]/g, ''));
+      const phone = document.getElementById('phoneNumber').value.trim();
+      const orderId = 'ORD-' + Math.floor(Math.random() * 90000 + 10000);
+      
+      if (paymentMethod === 'mpesa') {
+        // Simulate M-Pesa push
+        setTimeout(() => {
+          document.getElementById('loadingOverlay').classList.remove('active');
+          showOrderConfirmation(orderId, total);
+        }, 3000);
+      } else {
+        // Card payment
+        setTimeout(() => {
+          document.getElementById('loadingOverlay').classList.remove('active');
+          showOrderConfirmation(orderId, total);
+        }, 3000);
+      }
+    }
+    
+    function showOrderConfirmation(orderId, amount) {
+      const name = document.getElementById('customerName').value;
+      const phone = document.getElementById('phoneNumber').value;
+      const address = document.getElementById('deliveryAddress').value;
+      const deliveryTime = document.getElementById('deliveryTime').options[document.getElementById('deliveryTime').selectedIndex].text;
+      
+      // Create confirmation modal
+      const modal = document.createElement('div');
+      modal.id = 'confirmationModal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:2000;padding:2rem;overflow-y:auto';
+      modal.innerHTML = `
+        <div style="background:linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,0,0,0.9) 100%);border:2px solid var(--accent);border-radius:16px;padding:3rem;max-width:600px;width:100%;text-align:center;animation:slideIn 0.5s ease;position:relative;margin:auto;max-height:90vh;overflow-y:auto">
+          
+          <!-- Close Button -->
+          <button onclick="closeConfirmation()" style="position:absolute;top:1rem;right:1rem;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s ease" onmouseover="this.style.background='rgba(255,0,0,0.3)';this.style.borderColor='#ff4444'" onmouseout="this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.3)'">
+            ×
+          </button>
+          
+          <div style="font-size:5rem;margin-bottom:1rem">✅</div>
+          <h2 style="font-size:2rem;color:var(--accent);margin-bottom:1rem">Order Placed Successfully!</h2>
+          <p style="color:#999;margin-bottom:2rem">Your LPG cylinder is on the way</p>
+          
+          <div style="background:rgba(0,0,0,0.5);border-radius:12px;padding:2rem;margin-bottom:2rem;text-align:left">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:0.5rem">Order ID</div>
+            <div style="font-size:1.8rem;font-weight:700;color:var(--accent);margin-bottom:2rem;font-family:monospace">${orderId}</div>
+            
+            <div style="display:grid;gap:1rem;font-size:0.95rem">
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.1)">
+                <span style="color:#999">Customer</span>
+                <strong>${name}</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.1)">
+                <span style="color:#999">Phone</span>
+                <strong>${phone}</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.1)">
+                <span style="color:#999">Cylinder Size</span>
+                <strong>${selectedSize}</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.1)">
+                <span style="color:#999">Quantity</span>
+                <strong>${quantity}</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.1)">
+                <span style="color:#999">Delivery Time</span>
+                <strong>${deliveryTime}</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0">
+                <span style="color:#999">Total Paid</span>
+                <strong style="color:var(--accent);font-size:1.3rem">KES ${amount.toLocaleString()}</strong>
+              </div>
+            </div>
+          </div>
+          
+          <div style="background:rgba(0,255,136,0.1);border:1px solid var(--accent);border-radius:8px;padding:1.5rem;margin-bottom:2rem">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:0.5rem">📍 Estimated Delivery</div>
+            <div style="font-size:1.5rem;font-weight:700;color:var(--accent)">45-60 minutes</div>
+            <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Track your order in real-time</div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <button onclick="window.location.href='route-optimization.html?track=${orderId}'" style="padding:1rem;font-size:1rem;font-weight:600">
+              📍 Track Order
+            </button>
+            <button onclick="window.location.href='place-order.html'" style="padding:1rem;font-size:1rem;font-weight:600;background:var(--accent);color:#000">
+              🛒 New Order
+            </button>
+          </div>
+          
+          <div style="margin-top:1.5rem;font-size:0.85rem;color:#666">
+            Receipt sent to ${phone} via SMS
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Close modal when clicking outside
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeConfirmation();
+        }
+      });
+      
+      // Close modal with ESC key
+      const escHandler = (e) => {
+        if (e.key === 'Escape') {
+          closeConfirmation();
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+      
+      // Add animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateY(-50px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    function closeConfirmation() {
+      const modal = document.getElementById('confirmationModal');
+      if (modal) {
+        modal.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+          modal.remove();
+        }, 300);
+      }
+    }
+    
+    // Initialize
+    updateSummary();
+  </script>
+</body>
+</html>

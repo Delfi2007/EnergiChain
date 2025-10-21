@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>P2P Referral Marketplace — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    .ambassador-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .ambassador-card {
+      background: linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(255,170,0,0.1) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+    
+    .ambassador-badge {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #ffaa00);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      animation: badgeFloat 3s ease-in-out infinite;
+      box-shadow: 0 0 40px rgba(0,255,136,0.4);
+    }
+    
+    @keyframes badgeFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .earnings-display {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #ffaa00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 1rem 0;
+    }
+    
+    .rank-badge {
+      display: inline-block;
+      padding: 0.5rem 1.5rem;
+      background: linear-gradient(135deg, #ffaa00, #ff6600);
+      border-radius: 20px;
+      font-weight: 700;
+      color: #000;
+      margin-top: 1rem;
+      animation: pulse 2s ease infinite;
+    }
+    
+    .referral-code-section {
+      background: rgba(0,0,0,0.4);
+      border: 2px dashed var(--accent);
+      border-radius: 15px;
+      padding: 2rem;
+      margin-top: 2rem;
+      text-align: center;
+    }
+    
+    .referral-code {
+      font-size: 2.5rem;
+      font-weight: 800;
+      font-family: monospace;
+      color: var(--accent);
+      letter-spacing: 0.3rem;
+      margin: 1rem 0;
+      padding: 1rem;
+      background: rgba(0,0,0,0.5);
+      border-radius: 10px;
+      user-select: all;
+    }
+    
+    .qr-code-display {
+      width: 200px;
+      height: 200px;
+      margin: 1.5rem auto;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    
+    .share-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .share-btn {
+      padding: 1rem;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .share-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(0,255,136,0.3);
+    }
+    
+    .share-btn.whatsapp { background: #25D366; color: #fff; }
+    .share-btn.twitter { background: #1DA1F2; color: #fff; }
+    .share-btn.facebook { background: #1877F2; color: #fff; }
+    .share-btn.copy { background: var(--accent); color: #000; }
+    
+    .referral-list {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .referral-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      border-left: 4px solid var(--accent);
+      transition: all 0.3s ease;
+    }
+    
+    .referral-item:hover {
+      background: rgba(0,255,136,0.05);
+      transform: translateX(5px);
+    }
+    
+    .referral-item.new {
+      animation: slideInRight 0.5s ease;
+      border-left-color: #ffaa00;
+    }
+    
+    @keyframes slideInRight {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+    
+    .status-indicator.completed { background: var(--accent); animation: pulse 2s ease infinite; }
+    .status-indicator.pending { background: #ffaa00; }
+    
+    .leaderboard {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+    
+    .leaderboard-item:hover {
+      background: rgba(0,255,136,0.05);
+    }
+    
+    .leaderboard-rank {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    
+    .leaderboard-rank.first {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #000;
+      box-shadow: 0 0 20px rgba(255,215,0,0.5);
+    }
+    
+    .leaderboard-rank.second {
+      background: linear-gradient(135deg, #C0C0C0, #808080);
+      color: #000;
+    }
+    
+    .leaderboard-rank.third {
+      background: linear-gradient(135deg, #CD7F32, #8B4513);
+      color: #fff;
+    }
+    
+    .leaderboard-rank.other {
+      background: rgba(0,255,136,0.2);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+    }
+    
+    .commission-tiers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .tier-card {
+      padding: 1.5rem;
+      background: rgba(0,0,0,0.3);
+      border: 2px solid #333;
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .tier-card.active {
+      border-color: var(--accent);
+      background: rgba(0,255,136,0.05);
+      transform: scale(1.05);
+    }
+    
+    .tier-icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+      .ambassador-container {
+        grid-template-columns: 1fr;
+      }
+      .commission-tiers {
+        grid-template-columns: 1fr;
+      }
+      .share-buttons {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <div class="brand">EnergiChain</div>
+      <span style="font-size:0.9rem;color:#666">|</span>
+      <span style="font-size:0.9rem;color:#999">Referral Marketplace</span>
+    </div>
+    <nav>
+      <a href="index.html" style="display:flex;align-items:center;gap:0.5rem">
+        ← Dashboard
+      </a>
+    </nav>
+  </header>
+  
+  <main style="padding:2rem;max-width:1400px;margin:0 auto">
+    <!-- Header Section -->
+    <div style="text-align:center;margin-bottom:3rem">
+      <h1 style="font-size:2.5rem;margin-bottom:1rem;background:linear-gradient(135deg,var(--accent),#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        🌟 Energy Ambassador Program
+      </h1>
+      <p style="font-size:1.1rem;color:#999;line-height:1.6">
+        Earn commission by referring neighbors to clean energy. Students become Energy Ambassadors!
+      </p>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem">
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">2,847</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Active Ambassadors</div>
+      </div>
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)" id="totalReferrals">67.2K</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Total Referrals</div>
+      </div>
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">KES 8.4M</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Total Earned</div>
+      </div>
+      <div style="padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid #333;border-radius:12px;text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">10-25%</div>
+        <div style="font-size:0.85rem;color:#999;margin-top:0.5rem">Commission Rate</div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="ambassador-container">
+      <!-- Your Ambassador Profile -->
+      <div>
+        <div class="ambassador-card">
+          <div class="ambassador-badge">🌟</div>
+          <h3 style="font-size:1.5rem;margin-bottom:0.5rem">Sarah Mwangi</h3>
+          <div style="color:#999;margin-bottom:1rem">@sarahenergy</div>
+          <div class="rank-badge">⭐ GOLD AMBASSADOR</div>
+          
+          <div style="margin-top:2rem">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:0.5rem">Total Earnings</div>
+            <div class="earnings-display" id="totalEarnings">KES 24,800</div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem">
+            <div style="padding:1rem;background:rgba(0,0,0,0.3);border-radius:10px">
+              <div style="font-size:1.8rem;font-weight:700;color:var(--accent)" id="yourReferrals">43</div>
+              <div style="font-size:0.8rem;color:#999;margin-top:0.3rem">Referrals</div>
+            </div>
+            <div style="padding:1rem;background:rgba(0,0,0,0.3);border-radius:10px">
+              <div style="font-size:1.8rem;font-weight:700;color:#ffaa00" id="conversionRate">89%</div>
+              <div style="font-size:0.8rem;color:#999;margin-top:0.3rem">Success Rate</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commission Tiers -->
+        <div class="action-panel" style="margin-top:2rem">
+          <h3>💰 Commission Tiers</h3>
+          <div class="commission-tiers">
+            <div class="tier-card">
+              <div class="tier-icon">🥉</div>
+              <div style="font-weight:700;margin-bottom:0.5rem">Bronze</div>
+              <div style="font-size:0.85rem;color:#999;margin-bottom:1rem">0-10 referrals</div>
+              <div style="font-size:1.5rem;font-weight:700;color:var(--accent)">10%</div>
+            </div>
+            <div class="tier-card active">
+              <div class="tier-icon">🥇</div>
+              <div style="font-weight:700;margin-bottom:0.5rem">Gold</div>
+              <div style="font-size:0.85rem;color:#999;margin-bottom:1rem">11-50 referrals</div>
+              <div style="font-size:1.5rem;font-weight:700;color:var(--accent)">20%</div>
+            </div>
+            <div class="tier-card">
+              <div class="tier-icon">💎</div>
+              <div style="font-weight:700;margin-bottom:0.5rem">Diamond</div>
+              <div style="font-size:0.85rem;color:#999;margin-bottom:1rem">51+ referrals</div>
+              <div style="font-size:1.5rem;font-weight:700;color:var(--accent)">25%</div>
+            </div>
+          </div>
+          <div style="margin-top:1rem;padding:1rem;background:rgba(0,255,136,0.05);border-radius:10px;text-align:center">
+            <div style="font-size:0.85rem;color:#999">Next tier in</div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent)">7 referrals</div>
+          </div>
+        </div>
+
+        <!-- Earnings Chart -->
+        <div class="action-panel" style="margin-top:2rem">
+          <h3>📈 Monthly Earnings</h3>
+          <div class="chart-container" style="height:250px;margin-top:1rem">
+            <canvas id="earningsChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Referral Tools & Activity -->
+      <div>
+        <!-- Your Referral Code -->
+        <div class="action-panel">
+          <h3>🎯 Your Referral Code</h3>
+          <div class="referral-code-section">
+            <div style="font-size:0.9rem;color:#999;margin-bottom:1rem">Share this code with friends & family</div>
+            <div class="referral-code" id="referralCode">SARAH43</div>
+            
+            <div class="qr-code-display" id="qrCode"></div>
+            
+            <div class="share-buttons">
+              <button class="share-btn whatsapp" onclick="shareWhatsApp()">
+                💬 WhatsApp
+              </button>
+              <button class="share-btn twitter" onclick="shareTwitter()">
+                🐦 Twitter
+              </button>
+              <button class="share-btn facebook" onclick="shareFacebook()">
+                📘 Facebook
+              </button>
+              <button class="share-btn copy" onclick="copyCode()">
+                📋 Copy
+              </button>
+            </div>
+            
+            <button onclick="generateNewCode()" style="margin-top:1.5rem;padding:1rem 2rem;width:100%">
+              🔄 Generate New Code
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent Referrals -->
+        <div class="action-panel" style="margin-top:2rem">
+          <h3>👥 Recent Referrals</h3>
+          <div class="referral-list" id="referralList">
+            <div class="referral-item">
+              <div>
+                <div style="font-weight:700">
+                  <span class="status-indicator completed"></span>
+                  James Kamau
+                </div>
+                <div style="font-size:0.85rem;color:#999;margin-top:0.3rem">Oct 20, 2025 • 13kg cylinder</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">+KES 560</div>
+                <div style="font-size:0.75rem;color:#999;margin-top:0.3rem">Commission paid</div>
+              </div>
+            </div>
+            
+            <div class="referral-item">
+              <div>
+                <div style="font-weight:700">
+                  <span class="status-indicator completed"></span>
+                  Grace Njeri
+                </div>
+                <div style="font-size:0.85rem;color:#999;margin-top:0.3rem">Oct 19, 2025 • 6kg cylinder</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">+KES 340</div>
+                <div style="font-size:0.75rem;color:#999;margin-top:0.3rem">Commission paid</div>
+              </div>
+            </div>
+            
+            <div class="referral-item">
+              <div>
+                <div style="font-weight:700">
+                  <span class="status-indicator pending"></span>
+                  Peter Omondi
+                </div>
+                <div style="font-size:0.85rem;color:#999;margin-top:0.3rem">Oct 18, 2025 • 13kg cylinder</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:#ffaa00">KES 560</div>
+                <div style="font-size:0.75rem;color:#999;margin-top:0.3rem">Pending delivery</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Ambassadors Leaderboard -->
+        <div class="action-panel" style="margin-top:2rem">
+          <h3>🏆 Top Ambassadors This Month</h3>
+          <div class="leaderboard">
+            <div class="leaderboard-item">
+              <div class="leaderboard-rank first">1</div>
+              <div style="flex:1">
+                <div style="font-weight:700">David Kiprop</div>
+                <div style="font-size:0.85rem;color:#999">124 referrals</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:#FFD700">KES 68,400</div>
+              </div>
+            </div>
+            
+            <div class="leaderboard-item">
+              <div class="leaderboard-rank second">2</div>
+              <div style="flex:1">
+                <div style="font-weight:700">Mary Wambui</div>
+                <div style="font-size:0.85rem;color:#999">98 referrals</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:#C0C0C0">KES 52,800</div>
+              </div>
+            </div>
+            
+            <div class="leaderboard-item">
+              <div class="leaderboard-rank third">3</div>
+              <div style="flex:1">
+                <div style="font-weight:700">John Otieno</div>
+                <div style="font-size:0.85rem;color:#999">76 referrals</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:#CD7F32">KES 41,800</div>
+              </div>
+            </div>
+            
+            <div class="leaderboard-item" style="background:rgba(0,255,136,0.1);border:2px solid var(--accent)">
+              <div class="leaderboard-rank other">12</div>
+              <div style="flex:1">
+                <div style="font-weight:700;color:var(--accent)">Sarah Mwangi (You)</div>
+                <div style="font-size:0.85rem;color:#999">43 referrals</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">KES 24,800</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="action-panel" style="margin-top:2rem">
+      <h3>💡 How to Earn</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;margin-top:1.5rem">
+        <div style="text-align:center">
+          <div style="font-size:3rem;margin-bottom:0.5rem">1️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Share Your Code</div>
+          <div style="font-size:0.9rem;color:#999">Share via WhatsApp, social media, or in person</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:3rem;margin-bottom:0.5rem">2️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Friend Orders</div>
+          <div style="font-size:0.9rem;color:#999">They enter your code at checkout</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:3rem;margin-bottom:0.5rem">3️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Get Discount</div>
+          <div style="font-size:0.9rem;color:#999">Your friend saves 10% on first order</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:3rem;margin-bottom:0.5rem">4️⃣</div>
+          <div style="font-weight:700;margin-bottom:0.5rem">Earn Commission</div>
+          <div style="font-size:0.9rem;color:#999">You get 10-25% of order value instantly!</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+  <script>
+    let referralCode = 'SARAH43';
+    let totalEarnings = 24800;
+    let totalReferrals = 43;
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      generateQRCode();
+      initEarningsChart();
+    });
+
+    function generateQRCode() {
+      const qrDiv = document.getElementById('qrCode');
+      qrDiv.innerHTML = ''; // Clear existing QR
+      new QRCode(qrDiv, {
+        text: `https://energichain.ke/ref/${referralCode}`,
+        width: 168,
+        height: 168,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+      });
+    }
+
+    function generateNewCode() {
+      // Generate random code
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let newCode = '';
+      for (let i = 0; i < 8; i++) {
+        newCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      referralCode = newCode;
+      document.getElementById('referralCode').textContent = referralCode;
+      generateQRCode();
+      
+      // Show notification
+      showNotification('✓ New referral code generated!');
+    }
+
+    function shareWhatsApp() {
+      const message = `Hey! 🌟 Get 10% off your first LPG cylinder from EnergiChain using my code: ${referralCode}
+
+Clean energy, delivered fast! Order now: https://energichain.ke/ref/${referralCode}`;
+      
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function shareTwitter() {
+      const message = `🌟 Join me on @EnergiChain! Get 10% off clean LPG with code ${referralCode}. Fast delivery, blockchain-verified quality! 🔥`;
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function shareFacebook() {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://energichain.ke/ref/' + referralCode)}`, '_blank');
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(referralCode);
+      showNotification('✓ Code copied to clipboard!');
+    }
+
+    function showNotification(message) {
+      const notif = document.createElement('div');
+      notif.textContent = message;
+      notif.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: var(--accent);
+        color: #000;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        z-index: 1000;
+        animation: slideInRight 0.5s ease;
+      `;
+      document.body.appendChild(notif);
+      setTimeout(() => {
+        notif.style.animation = 'fadeOut 0.5s ease';
+        setTimeout(() => notif.remove(), 500);
+      }, 3000);
+    }
+
+    function initEarningsChart() {
+      const ctx = document.getElementById('earningsChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+          datasets: [{
+            label: 'Earnings (KES)',
+            data: [1800, 2400, 3200, 4100, 4800, 3900, 4600],
+            backgroundColor: 'rgba(0,255,136,0.6)',
+            borderColor: '#00ff88',
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255,255,255,0.1)' },
+              ticks: { color: '#999' }
+            },
+            x: {
+              grid: { color: 'rgba(255,255,255,0.1)' },
+              ticks: { color: '#999' }
+            }
+          }
+        }
+      });
+    }
+
+    // Simulate new referral (for demo)
+    setInterval(() => {
+      if (Math.random() > 0.8) { // 20% chance every interval
+        addNewReferral();
+      }
+    }, 15000); // Every 15 seconds
+
+    function addNewReferral() {
+      const names = ['John Kariuki', 'Ann Wanjiru', 'Tom Odhiambo', 'Lucy Cheptoo', 'Mike Mutua'];
+      const sizes = ['6kg', '13kg'];
+      const commissions = { '6kg': 340, '13kg': 560 };
+      
+      const name = names[Math.floor(Math.random() * names.length)];
+      const size = sizes[Math.floor(Math.random() * sizes.length)];
+      const commission = commissions[size];
+      
+      const newItem = document.createElement('div');
+      newItem.className = 'referral-item new';
+      newItem.innerHTML = `
+        <div>
+          <div style="font-weight:700">
+            <span class="status-indicator completed"></span>
+            ${name}
+          </div>
+          <div style="font-size:0.85rem;color:#999;margin-top:0.3rem">Just now • ${size} cylinder</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700;color:var(--accent)">+KES ${commission}</div>
+          <div style="font-size:0.75rem;color:#999;margin-top:0.3rem">Commission paid</div>
+        </div>
+      `;
+      
+      const list = document.getElementById('referralList');
+      list.insertBefore(newItem, list.firstChild);
+      
+      // Update totals
+      totalReferrals++;
+      totalEarnings += commission;
+      document.getElementById('yourReferrals').textContent = totalReferrals;
+      document.getElementById('totalEarnings').textContent = `KES ${totalEarnings.toLocaleString()}`;
+      
+      showNotification(`🎉 New referral! +KES ${commission}`);
+    }
+  </script>
+</body>
+</html>

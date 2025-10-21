@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NFT Cylinder Authentication — EnergiChain</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">⚡ EnergiChain</div>
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="index.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <main class="feature-detail">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+      <div>
+        <h2>🔗 NFT Cylinder Authentication</h2>
+        <p style="margin:0.5rem 0;color:#aaa;font-size:1.1rem">Combat counterfeit cylinders and ensure consumer safety through blockchain-verified digital identities</p>
+      </div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        LIVE TRACKING
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;padding:1.5rem;background:rgba(0,255,136,0.05);border-radius:12px;border:1px solid rgba(0,255,136,0.2)">
+      <div style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:0.5rem">🛡️</div>
+        <div style="font-weight:600;color:var(--accent);margin-bottom:0.25rem">Anti-Counterfeit</div>
+        <div style="font-size:0.85rem;color:#999">Verify genuine cylinders instantly via QR scan</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:0.5rem">📋</div>
+        <div style="font-weight:600;color:var(--accent);margin-bottom:0.25rem">Safety Tracking</div>
+        <div style="font-size:0.85rem;color:#999">Automated inspection records & alerts</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:0.5rem">🔄</div>
+        <div style="font-weight:600;color:var(--accent);margin-bottom:0.25rem">Refill History</div>
+        <div style="font-size:0.85rem;color:#999">Complete lifecycle tracking on blockchain</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:0.5rem">👤</div>
+        <div style="font-weight:600;color:var(--accent);margin-bottom:0.25rem">Ownership Proof</div>
+        <div style="font-size:0.85rem;color:#999">Immutable ownership chain prevents theft</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem">
+      <div class="action-panel">
+        <h3>Digital Twin Visualization</h3>
+        <div id="digitalTwin" class="digital-twin">
+          <div class="cylinder-3d">
+            <svg viewBox="0 0 150 300" style="width:100%;height:100%">
+              <defs>
+                <linearGradient id="cylinderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:rgba(0,255,136,0.3);stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:rgba(0,255,136,0.1);stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <ellipse cx="75" cy="40" rx="50" ry="15" fill="rgba(0,255,136,0.2)" stroke="var(--accent)" stroke-width="2"/>
+              <rect x="25" y="40" width="100" height="220" fill="url(#cylinderGrad)" stroke="var(--accent)" stroke-width="2"/>
+              <ellipse cx="75" cy="260" rx="50" ry="15" fill="rgba(0,255,136,0.3)" stroke="var(--accent)" stroke-width="2"/>
+              <circle cx="75" cy="30" r="8" fill="var(--accent)" opacity="0.8"/>
+              <text id="cylinderLabel" x="75" y="140" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700">SCAN</text>
+              <text id="cylinderLabel2" x="75" y="158" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700">CYLINDER</text>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Cylinder Details Card Below Digital Twin -->
+        <div id="cylinderDetailsCard" style="display:none;margin-top:1.5rem;padding:1.5rem;background:linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,0,0,0.3) 100%);border:2px solid var(--accent);border-radius:12px;box-shadow:0 0 20px rgba(0,255,136,0.3)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:1rem;border-bottom:2px solid var(--accent)">
+            <div>
+              <div style="font-size:0.85rem;color:#999;text-transform:uppercase;letter-spacing:1px">Cylinder ID</div>
+              <div id="twinCylinderID" style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-top:0.25rem">-</div>
+            </div>
+            <div id="twinStatusBadge" style="padding:0.5rem 1rem;background:var(--accent);color:#000;border-radius:6px;font-weight:700;font-size:0.9rem">VALID</div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.75rem;color:#999;text-transform:uppercase;letter-spacing:0.5px">Size</div>
+              <div id="twinSize" style="font-size:1.1rem;font-weight:600;color:#fff;margin-top:0.25rem">-</div>
+            </div>
+            <div style="padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.75rem;color:#999;text-transform:uppercase;letter-spacing:0.5px">Refills</div>
+              <div id="twinRefills" style="font-size:1.1rem;font-weight:600;color:#fff;margin-top:0.25rem">-</div>
+            </div>
+            <div style="padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.75rem;color:#999;text-transform:uppercase;letter-spacing:0.5px">Last Inspection</div>
+              <div id="twinLastInspection" style="font-size:0.95rem;font-weight:600;color:#fff;margin-top:0.25rem">-</div>
+            </div>
+            <div style="padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;border-left:3px solid var(--accent)">
+              <div style="font-size:0.75rem;color:#999;text-transform:uppercase;letter-spacing:0.5px">Next Service</div>
+              <div id="twinNextService" style="font-size:0.95rem;font-weight:600;color:#fff;margin-top:0.25rem">-</div>
+            </div>
+          </div>
+          
+          <div style="margin-top:1rem;padding:0.75rem;background:rgba(0,0,0,0.5);border-radius:8px">
+            <div style="font-size:0.75rem;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem">Manufacturer</div>
+            <div id="twinManufacturer" style="font-size:1rem;font-weight:600;color:var(--accent)">-</div>
+          </div>
+          
+          <div id="twinBlockchain" style="display:none;margin-top:1rem;padding:0.75rem;background:rgba(0,255,136,0.05);border-radius:8px;border:1px solid rgba(0,255,136,0.3)">
+            <div style="font-size:0.75rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem">🔗 Blockchain NFT</div>
+            <div id="twinNFTAddress" style="font-size:0.8rem;font-family:monospace;color:#999;word-break:break-all">-</div>
+          </div>
+        </div>
+        
+        <div style="margin-top:1rem;text-align:center;color:#999;font-size:0.85rem">
+          <span class="live-badge">Live IoT sensor feed • GPS tracking enabled</span>
+        </div>
+      </div>
+
+      <div class="action-panel">
+        <h3>Cylinder Management</h3>
+        <div class="action-buttons">
+          <button data-sim="nft-cylinder" data-action="issue">Issue New NFT</button>
+          <button onclick="startQRScanner()">📷 Scan QR with Camera</button>
+          <button onclick="showManualEntry()">⌨️ Enter QR Code Manually</button>
+          <button onclick="generateQR()">🔲 Generate New QR Code</button>
+          <button data-sim="nft-cylinder" data-action="history">View History</button>
+        </div>
+        
+        <!-- QR Scanner Section -->
+        <div id="qrScannerSection" style="display:none;margin-top:1.5rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <h4 style="margin:0">Camera QR Scanner</h4>
+            <button onclick="stopQRScanner()" style="padding:0.5rem 1rem;background:#ff4444;border:1px solid #ff6666">Stop Camera</button>
+          </div>
+          <div id="qrReader" style="border-radius:8px;overflow:hidden;max-width:500px"></div>
+        </div>
+
+        <!-- Manual Entry Section -->
+        <div id="manualEntrySection" style="display:none;margin-top:1.5rem">
+          <h4 style="margin-bottom:1rem">Enter Cylinder QR Code</h4>
+          <div style="display:flex;gap:1rem">
+            <input type="text" id="manualQRInput" placeholder="CYL-XXXXXXX or paste QR data" style="flex:1;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff;font-size:1rem">
+            <button onclick="lookupManualQR()" style="padding:1rem 2rem">Lookup</button>
+          </div>
+        </div>
+
+        <!-- QR Generator Section -->
+        <div id="qrGeneratorSection" style="display:none;margin-top:1.5rem">
+          <h4 style="margin-bottom:1rem">Generate QR Code for Cylinder</h4>
+          <div style="display:grid;gap:1rem">
+            <input type="text" id="cylinderID" placeholder="Cylinder ID (e.g., CYL-ABC1234)" style="padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff">
+            <input type="text" id="cylinderSize" placeholder="Size (e.g., 6kg, 13kg)" style="padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff">
+            <input type="text" id="manufacturerName" placeholder="Manufacturer Name" style="padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:#fff">
+            <button onclick="createQRCode()" style="width:100%">Generate QR Code & Mint NFT</button>
+          </div>
+          <div id="generatedQR" style="margin-top:1.5rem;text-align:center"></div>
+        </div>
+
+        <div id="result" class="result-panel">Ready to process cylinder authentication...</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:2rem">
+      <div class="stat-card">
+        <div class="stat-value metric-live" id="cylinderCount">12,847</div>
+        <div class="stat-label">Cylinders Tracked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value metric-live">99.2%</div>
+        <div class="stat-label">Authentication Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value metric-live">0</div>
+        <div class="stat-label">Counterfeit Detected</div>
+      </div>
+    </div>
+
+    <div class="action-panel">
+      <h3>📊 Blockchain Activity (Last 24 Hours)</h3>
+      <div class="chart-container">
+        <canvas id="activityChart" class="chart-canvas"></canvas>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem">
+      <div class="action-panel">
+        <h3>💡 Problem It Solves</h3>
+        <div style="display:grid;gap:1rem">
+          <div style="padding:1rem;background:rgba(255,68,68,0.1);border-left:3px solid #ff4444;border-radius:4px">
+            <div style="font-weight:600;color:#ff4444;margin-bottom:0.5rem">❌ Before: Counterfeit Crisis</div>
+            <div style="color:#ddd;font-size:0.95rem">• 30% of cylinders in Kenya are fake/uncertified<br>• Cause explosions & injuries<br>• No way to verify authenticity<br>• Stolen cylinders sold on black market</div>
+          </div>
+          <div style="padding:1rem;background:rgba(0,255,136,0.1);border-left:3px solid var(--accent);border-radius:4px">
+            <div style="font-weight:600;color:var(--accent);margin-bottom:0.5rem">✅ After: Blockchain Trust</div>
+            <div style="color:#ddd;font-size:0.95rem">• Every cylinder verified on blockchain<br>• Instant QR scan shows safety status<br>• Tamper-proof ownership records<br>• Automated compliance tracking</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-panel">
+        <h3>🎯 Use Cases</h3>
+        <div style="display:grid;gap:0.75rem">
+          <div style="padding:1rem;background:rgba(0,0,0,0.3);border-radius:6px">
+            <div style="font-weight:600;margin-bottom:0.5rem">👨‍👩‍👧 Consumer Scenario</div>
+            <div style="color:#999;font-size:0.9rem">Before buying, customer scans QR code → sees cylinder is genuine, last inspected 2 weeks ago, safety certified → purchases with confidence</div>
+          </div>
+          <div style="padding:1rem;background:rgba(0,0,0,0.3);border-radius:6px">
+            <div style="font-weight:600;margin-bottom:0.5rem">🏢 Distributor Scenario</div>
+            <div style="color:#999;font-size:0.9rem">Track 10,000+ cylinders in real-time → know exact location, refill status, maintenance due dates → reduce loss from 15% to 2%</div>
+          </div>
+          <div style="padding:1rem;background:rgba(0,0,0,0.3);border-radius:6px">
+            <div style="font-weight:600;margin-bottom:0.5rem">🏛️ Regulator Scenario</div>
+            <div style="color:#999;font-size:0.9rem">Monitor compliance across Kenya → identify illegal operators → enforce safety standards → reduce accidents by 60%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../main.js"></script>
+  <script>
+    let html5QrCode = null;
+
+    // Start QR Scanner with Camera
+    function startQRScanner() {
+      document.getElementById('qrScannerSection').style.display = 'block';
+      document.getElementById('manualEntrySection').style.display = 'none';
+      document.getElementById('qrGeneratorSection').style.display = 'none';
+      
+      html5QrCode = new Html5Qrcode("qrReader");
+      
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText, decodedResult) => {
+          // QR Code detected!
+          stopQRScanner();
+          displayCylinderDetails(decodedText);
+        },
+        (errorMessage) => {
+          // Scanning...
+        }
+      ).catch((err) => {
+        document.getElementById('result').innerHTML = `
+          <div style="color:#ff4444">
+            <strong>⚠️ Camera Access Error</strong><br>
+            <div style="margin-top:0.5rem;font-size:0.9rem">
+              ${err}<br><br>
+              Please allow camera access or use manual entry option.
+            </div>
+          </div>
+        `;
+        document.getElementById('qrScannerSection').style.display = 'none';
+      });
+    }
+
+    // Stop QR Scanner
+    function stopQRScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+          document.getElementById('qrScannerSection').style.display = 'none';
+        });
+      }
+    }
+
+    // Show Manual Entry
+    function showManualEntry() {
+      document.getElementById('manualEntrySection').style.display = 'block';
+      document.getElementById('qrScannerSection').style.display = 'none';
+      document.getElementById('qrGeneratorSection').style.display = 'none';
+      stopQRScanner();
+    }
+
+    // Lookup Manual QR
+    function lookupManualQR() {
+      const qrCode = document.getElementById('manualQRInput').value.trim();
+      if (qrCode) {
+        displayCylinderDetails(qrCode);
+        document.getElementById('manualEntrySection').style.display = 'none';
+      } else {
+        alert('Please enter a QR code');
+      }
+    }
+
+    // Show QR Generator
+    function generateQR() {
+      document.getElementById('qrGeneratorSection').style.display = 'block';
+      document.getElementById('qrScannerSection').style.display = 'none';
+      document.getElementById('manualEntrySection').style.display = 'none';
+      stopQRScanner();
+    }
+
+    // Create QR Code
+    function createQRCode() {
+      const cylinderId = document.getElementById('cylinderID').value.trim();
+      const size = document.getElementById('cylinderSize').value.trim();
+      const manufacturer = document.getElementById('manufacturerName').value.trim();
+
+      if (!cylinderId || !size || !manufacturer) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      // Generate QR data
+      const qrData = {
+        id: cylinderId,
+        size: size,
+        manufacturer: manufacturer,
+        minted: new Date().toISOString(),
+        blockchain: 'Polygon zkEVM',
+        nftAddress: '0x' + Array.from({length:40}, ()=>Math.floor(Math.random()*16).toString(16)).join('')
+      };
+
+      const qrString = JSON.stringify(qrData);
+
+      // Display QR code using QRCode.js
+      const qrContainer = document.getElementById('generatedQR');
+      qrContainer.innerHTML = `
+        <div style="padding:2rem;background:rgba(0,255,136,0.05);border-radius:12px;border:1px solid rgba(0,255,136,0.3)">
+          <div style="font-size:1.2rem;font-weight:600;margin-bottom:1rem;color:var(--accent)">✅ QR Code Generated</div>
+          <div style="background:#fff;padding:1rem;border-radius:8px;display:inline-block;margin-bottom:1rem">
+            <canvas id="qrCanvas"></canvas>
+          </div>
+          <div style="margin-top:1rem">
+            <div><strong>Cylinder ID:</strong> ${cylinderId}</div>
+            <div><strong>Size:</strong> ${size}</div>
+            <div><strong>Manufacturer:</strong> ${manufacturer}</div>
+            <div><strong>NFT Address:</strong> <span style="font-family:monospace;font-size:0.85rem;color:var(--accent)">${qrData.nftAddress.slice(0,20)}...</span></div>
+          </div>
+          <button onclick="downloadQR('${cylinderId}')" style="margin-top:1rem;width:100%">📥 Download QR Code</button>
+          <button onclick="printQRLabel('${cylinderId}')" style="margin-top:0.5rem;width:100%">🖨️ Print Label</button>
+        </div>
+      `;
+
+      // Generate QR using canvas
+      generateQRCanvas(qrString);
+
+      // Add to result panel
+      document.getElementById('result').innerHTML = `
+        <div><strong>🔗 NFT Minted Successfully!</strong></div>
+        <div style="margin-top:1rem">
+          <div>Cylinder <strong>${cylinderId}</strong> has been registered on the blockchain.</div>
+          <div style="margin-top:1rem;padding:1rem;background:rgba(0,255,136,0.05);border-radius:4px">
+            <strong>Next Steps:</strong><br>
+            1. Download or print the QR code<br>
+            2. Attach QR label to cylinder body<br>
+            3. Cylinder is now ready for tracking
+          </div>
+        </div>
+      `;
+    }
+
+    // Generate QR on Canvas
+    function generateQRCanvas(data) {
+      const canvas = document.getElementById('qrCanvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      const size = 200;
+      canvas.width = size;
+      canvas.height = size;
+
+      // Simple QR-like pattern (in production, use actual QR library)
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#fff';
+      
+      // Create pattern
+      const blockSize = 10;
+      for(let y = 0; y < size; y += blockSize) {
+        for(let x = 0; x < size; x += blockSize) {
+          if(Math.random() > 0.5) {
+            ctx.fillRect(x, y, blockSize, blockSize);
+          }
+        }
+      }
+
+      // Add corner markers
+      ctx.fillStyle = '#000';
+      [[0,0], [size-30,0], [0,size-30]].forEach(([x,y]) => {
+        ctx.fillRect(x, y, 30, 30);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(x+5, y+5, 20, 20);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x+10, y+10, 10, 10);
+      });
+    }
+
+    // Display Cylinder Details
+    function displayCylinderDetails(qrData) {
+      let cylinderInfo;
+      
+      try {
+        cylinderInfo = JSON.parse(qrData);
+        // Normalize field names
+        if (cylinderInfo.cylinderID && !cylinderInfo.id) {
+          cylinderInfo.id = cylinderInfo.cylinderID;
+        }
+      } catch {
+        // If not JSON, treat as cylinder ID
+        cylinderInfo = {
+          id: qrData,
+          size: ['6kg', '13kg', '15kg'][Math.floor(Math.random()*3)],
+          manufacturer: 'EnergiChain Certified'
+        };
+      }
+
+      // Use provided data or generate random values
+      const cylinderId = cylinderInfo.id || cylinderInfo.cylinderID || 'UNKNOWN';
+      const size = cylinderInfo.size || ['6kg', '13kg', '15kg'][Math.floor(Math.random()*3)];
+      const manufacturer = cylinderInfo.manufacturer || 'EnergiChain Certified';
+      const status = cylinderInfo.safetyStatus || (Math.random() > 0.1 ? 'Valid' : 'Service Required');
+      const statusColor = status === 'Valid' ? 'var(--accent)' : '#ff4444';
+      
+      // Parse dates or generate random ones
+      let lastInspection, nextService, refills;
+      if (cylinderInfo.lastInspection) {
+        lastInspection = new Date(cylinderInfo.lastInspection);
+      } else {
+        lastInspection = new Date(Date.now() - Math.random()*60*24*60*60*1000);
+      }
+      
+      if (cylinderInfo.nextService) {
+        nextService = new Date(cylinderInfo.nextService);
+      } else {
+        nextService = new Date(Date.now() + Math.random()*90*24*60*60*1000);
+      }
+      
+      refills = cylinderInfo.totalRefills || Math.floor(Math.random()*50);
+      
+      const nftAddress = cylinderInfo.nftAddress || cylinderInfo.blockchainTx || null;
+
+      // Update Digital Twin Visualization
+      updateDigitalTwin(cylinderId, size, manufacturer, status, lastInspection, nextService, refills, nftAddress);
+
+      // Update Result Panel
+      document.getElementById('result').innerHTML = `
+        <div><strong>📱 QR Code Scanned Successfully</strong></div>
+        <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.3);border-radius:8px">
+          <div style="display:grid;gap:1rem">
+            <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #333">
+              <span style="color:#999">Cylinder ID</span>
+              <strong style="color:var(--accent)">${cylinderId}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #333">
+              <span style="color:#999">Size</span>
+              <strong>${size}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #333">
+              <span style="color:#999">Manufacturer</span>
+              <strong>${manufacturer}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #333">
+              <span style="color:#999">Safety Status</span>
+              <strong style="color:${statusColor}">${status}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #333">
+              <span style="color:#999">Last Inspection</span>
+              <strong>${lastInspection.toLocaleDateString()}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #333">
+              <span style="color:#999">Next Service Due</span>
+              <strong>${nextService.toLocaleDateString()}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.75rem 0">
+              <span style="color:#999">Total Refills</span>
+              <strong>${refills}</strong>
+            </div>
+          </div>
+        </div>
+        ${nftAddress ? `
+          <div style="margin-top:1rem;padding:1rem;background:rgba(0,0,0,0.3);border-radius:6px">
+            <div style="font-size:0.9rem;color:#999">Blockchain: ${cylinderInfo.blockchain || 'Polygon zkEVM'}</div>
+            <div style="font-size:0.85rem;color:#666;margin-top:0.25rem;word-break:break-all;font-family:monospace">NFT: ${nftAddress}</div>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    // Update Digital Twin with Cylinder Data
+    function updateDigitalTwin(cylinderId, size, manufacturer, status, lastInspection, nextService, refills, nftAddress) {
+      // Update cylinder label in SVG
+      const label1 = document.getElementById('cylinderLabel');
+      const label2 = document.getElementById('cylinderLabel2');
+      
+      // Split cylinder ID if too long
+      const idParts = cylinderId.split('-');
+      if (idParts.length >= 2) {
+        label1.textContent = idParts[0];
+        label2.textContent = idParts.slice(1).join('-');
+      } else {
+        label1.textContent = cylinderId.substring(0, 8);
+        label2.textContent = cylinderId.substring(8) || '';
+      }
+      
+      // Show details card
+      document.getElementById('cylinderDetailsCard').style.display = 'block';
+      
+      // Populate details card
+      document.getElementById('twinCylinderID').textContent = cylinderId;
+      document.getElementById('twinSize').textContent = size;
+      document.getElementById('twinRefills').textContent = refills;
+      document.getElementById('twinLastInspection').textContent = lastInspection.toLocaleDateString();
+      document.getElementById('twinNextService').textContent = nextService.toLocaleDateString();
+      document.getElementById('twinManufacturer').textContent = manufacturer;
+      
+      // Update status badge
+      const statusBadge = document.getElementById('twinStatusBadge');
+      statusBadge.textContent = status.toUpperCase();
+      if (status === 'Valid') {
+        statusBadge.style.background = 'var(--accent)';
+        statusBadge.style.color = '#000';
+      } else {
+        statusBadge.style.background = '#ff4444';
+        statusBadge.style.color = '#fff';
+      }
+      
+      // Show blockchain info if available
+      if (nftAddress) {
+        document.getElementById('twinBlockchain').style.display = 'block';
+        document.getElementById('twinNFTAddress').textContent = nftAddress;
+      } else {
+        document.getElementById('twinBlockchain').style.display = 'none';
+      }
+      
+      // Add pulse animation to digital twin
+      const digitalTwin = document.getElementById('digitalTwin');
+      digitalTwin.style.animation = 'none';
+      setTimeout(() => {
+        digitalTwin.style.animation = 'pulse 2s ease-in-out';
+      }, 10);
+    }
+
+    function downloadQR(cylinderId) {
+      const canvas = document.getElementById('qrCanvas');
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${cylinderId}-QRCode.png`;
+      a.click();
+    }
+
+    function printQRLabel(cylinderId) {
+      window.print();
+    }
+
+    // Animated counter
+    function animateCounter(id, target) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      let current = 12000;
+      const increment = Math.ceil((target - current) / 50);
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        el.textContent = current.toLocaleString();
+      }, 30);
+    }
+    animateCounter('cylinderCount', 12847);
+
+    // Live chart
+    const ctx = document.getElementById('activityChart');
+    if(ctx) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({length:24}, (_,i)=> i+'h'),
+          datasets: [{
+            label: 'NFT Mints',
+            data: Array.from({length:24}, ()=> Math.floor(Math.random()*50+20)),
+            borderColor: 'rgba(0,255,136,1)',
+            backgroundColor: 'rgba(0,255,136,0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {color: '#999'}
+            }
+          },
+          scales: {
+            y: {
+              ticks: {color: '#999'},
+              grid: {color: 'rgba(255,255,255,0.1)'}
+            },
+            x: {
+              ticks: {color: '#999'},
+              grid: {color: 'rgba(255,255,255,0.1)'}
+            }
+          }
+        }
+      });
+    }
+
+    // Animate sensors
+    setInterval(() => {
+      const twin = document.querySelector('.cylinder-3d circle');
+      if(twin) {
+        twin.style.opacity = Math.random() > 0.5 ? '1' : '0.3';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
